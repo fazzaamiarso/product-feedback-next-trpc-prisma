@@ -1,6 +1,4 @@
 import type { InferGetServerSidePropsType } from "next";
-import Head from "next/head";
-import Image from "next/image";
 import db from "../db/prisma";
 
 export const getServerSideProps = async () => {
