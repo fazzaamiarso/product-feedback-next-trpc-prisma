@@ -32,7 +32,7 @@ module.exports = {
     },
     extend: {},
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/forms")],
   //enables chrome devTools color picker
   corePlugins: {
     textOpacity: false,
