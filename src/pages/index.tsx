@@ -15,9 +15,9 @@ function Home({
   post,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
-    <main className="text-red-500">
+    <main className='text-2xl font-bold text-cyan bg-darkblue'>
       Hello Somebody
-      <div>{post.length}</div>
+      <div className='text-salmon text-normal font-normal'>{post.length}</div>
     </main>
   );
 }
