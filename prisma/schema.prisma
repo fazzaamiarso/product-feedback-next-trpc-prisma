@@ -13,10 +13,76 @@ datasource db {
   referentialIntegrity = "prisma"
 }
 
-model Post {
+enum Status {
+  IN_PROGRESS
+  LIVE
+  PLANNED
+  SUGGESTION
+}
+
+enum Category {
+  UI
+  UX
+  ENHANCEMENT
+  BUG
+  FEATURE
+}
+
+model User {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  avatar    String?
+  username  String
+  name      String
+  comments  Comment[]
+  replies   Reply[]
+  feedbacks Feedback[]
+  upvotes   Upvote[]
+}
+
+model Feedback {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  title       String
+  category    Category
+  status      Status    @default(SUGGESTION)
+  description String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  comments    Comment[]
+  upvotes     Upvote[]
+}
+
+model Upvote {
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  feedbackId String
+  feedback   Feedback @relation(fields: [feedbackId], references: [id])
+
+  @@id([userId, feedbackId])
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  content    String
+  replies    Reply[]
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  feedbackId String
+  feedback   Feedback @relation(fields: [feedbackId], references: [id])
+}
+
+model Reply {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
   content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  commentId Int
+  comment   Comment  @relation(fields: [commentId], references: [id])
 }
