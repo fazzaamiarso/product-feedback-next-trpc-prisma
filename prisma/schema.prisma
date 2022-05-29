@@ -35,9 +35,10 @@ model User {
   username  String
   name      String
   comments  Comment[]
-  replies   Reply[]
   feedbacks Feedback[]
   upvotes   Upvote[]
+  replyFrom Reply[]    @relation("replyFrom")
+  repliedTo Reply[]    @relation("repliedTo")
 }
 
 model Feedback {
@@ -47,9 +48,9 @@ model Feedback {
   title       String
   category    Category
   status      Status    @default(SUGGESTION)
-  description String
+  description String    @db.LongText
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments    Comment[]
   upvotes     Upvote[]
 }
@@ -57,9 +58,9 @@ model Feedback {
 model Upvote {
   createdAt  DateTime @default(now())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   feedbackId String
-  feedback   Feedback @relation(fields: [feedbackId], references: [id])
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
 
   @@id([userId, feedbackId])
 }
@@ -68,21 +69,23 @@ model Comment {
   id         Int      @id @default(autoincrement())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  content    String
+  content    String   @db.LongText
   replies    Reply[]
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   feedbackId String
-  feedback   Feedback @relation(fields: [feedbackId], references: [id])
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
 }
 
 model Reply {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  content   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  commentId Int
-  comment   Comment  @relation(fields: [commentId], references: [id])
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  content     String   @db.LongText
+  repliedToId String
+  repliedTo   User     @relation(fields: [repliedToId], references: [id], name: "repliedTo", onDelete: Cascade)
+  replyFromId String
+  replyFrom   User     @relation(fields: [replyFromId], references: [id], name: "replyFrom", onDelete: Cascade)
+  commentId   Int
+  comment     Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
