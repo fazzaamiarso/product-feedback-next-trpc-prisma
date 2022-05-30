@@ -15,7 +15,11 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/db": ["db/prisma.ts"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
