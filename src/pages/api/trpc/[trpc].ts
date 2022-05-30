@@ -2,7 +2,7 @@ import superjson from "superjson";
 import * as trpc from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
 import { z } from "zod";
-import db from "../../../db/prisma";
+import db from "@/db";
 
 export const appRouter = trpc
   .router()
