@@ -14,6 +14,11 @@ export const appRouter = trpc
         users,
       };
     },
+  })
+  .query("feedback", {
+    async resolve() {
+      return { feedbacks: await db.feedback.findMany() };
+    },
   });
 
 // export type definition of API
