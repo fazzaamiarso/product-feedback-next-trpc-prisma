@@ -1,18 +1,20 @@
-import { Feedback, PrismaClient, Reply } from "@prisma/client";
+import { Feedback, PrismaClient, Comment } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 function generateUpvotes(upvotesCount: number) {
   return Array(upvotesCount)
     .fill("")
-    .map((val, idx) => ({ userId: String(idx + 1) }));
+    .map((_, idx) => ({ userId: String(idx + 1) }));
 }
 
 async function seed() {
+  console.log("🌱 Starts seeding!");
   await prisma.user.deleteMany();
   await prisma.feedback.deleteMany();
   await prisma.upvote.deleteMany();
   await prisma.comment.deleteMany();
+  await prisma.reply.deleteMany();
   console.log("✅ Database Cleared!");
 
   await prisma.user.createMany({
@@ -41,6 +43,21 @@ async function seed() {
     })
   );
   console.log("✅ Feedbacks Created!");
+
+  await Promise.all(
+    getReplies().map(async (reply) => {
+      return await prisma.reply.create({
+        data: {
+          commentId: reply.commentId,
+          replyFromId: reply.replyFromId,
+          repliedToId: reply.repliedToId,
+          content: reply.content,
+        },
+      });
+    })
+  );
+  console.log("✅ Replies Created!");
+  console.log("🏁 Done seeding!");
 }
 seed()
   .catch((e) => {
@@ -61,11 +78,13 @@ function getFeedbacks() {
       upvotes: 112,
       comments: [
         {
+          id: 1,
           userId: "2",
           content:
             "Awesome idea! Trying to find framework-specific projects within the hubs can be tedious",
         },
         {
+          id: 2,
           userId: "3",
           content:
             "Please use fun, color-coded labels to easily identify them at a glance",
@@ -82,16 +101,37 @@ function getFeedbacks() {
         "It would help people with light sensitivities and who prefer dark mode.",
       comments: [
         {
+          id: 3,
           content:
             "Also, please allow styles to be applied based on system preferences. I would love to be able to browse Frontend Mentor in the evening after my device’s dark mode turns on without the bright background it currently has.",
           userId: "4",
         },
         {
+          id: 4,
           userId: "5",
           content:
             "Second this! I do a lot of late night coding and reading. Adding a dark theme can be great for preventing eye strain and the headaches that result. It’s also quite a trend with modern apps and  apparently saves battery life.",
         },
       ],
+    },
+  ];
+}
+
+function getReplies() {
+  return [
+    {
+      content:
+        "While waiting for dark mode, there are browser extensions that will also do the job. Search for 'dark theme' followed by your browser. There might be a need to turn off the extension for sites with naturally black backgrounds though.",
+      replyFromId: "6",
+      repliedToId: "5",
+      commentId: 4,
+    },
+    {
+      content:
+        "Good point! Using any kind of style extension is great and can be highly customizable, like the ability to change contrast and brightness. I'd prefer not to use one of such extensions, however, for security and privacy reasons.",
+      repliedToId: "6",
+      replyFromId: "7",
+      commentId: 4,
     },
   ];
 }
