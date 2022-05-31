@@ -7,17 +7,23 @@ import db from "@/db";
 export const appRouter = trpc
   .router()
   .transformer(superjson)
-  .query("user", {
-    async resolve() {
-      const users = await db.user.findMany();
-      return {
-        users,
-      };
-    },
-  })
   .query("feedback", {
     async resolve() {
-      return { feedbacks: await db.feedback.findMany() };
+      const feedbacks = await db.feedback.findMany({
+        select: {
+          category: true,
+          description: true,
+          id: true,
+          title: true,
+          comments: {
+            select: { _count: { select: { replies: true } } },
+          },
+          _count: { select: { upvotes: true, comments: true } },
+        },
+      });
+      return {
+        feedbacks,
+      };
     },
   });
 

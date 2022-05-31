@@ -1,4 +1,6 @@
+import { Listbox } from "@headlessui/react";
 import Image from "next/image";
+import { useState } from "react";
 import { trpc } from "../utils/trpc";
 
 function Home() {
@@ -7,10 +9,11 @@ function Home() {
   return (
     <main className='flex  flex-col  items-center bg-gray'>
       <div className=' flex w-full items-center bg-darkerblue px-4 py-4 '>
-        <div className='hidden items-center  gap-2 font-bold text-white sm:flex'>
+        <div className='mr-8 hidden items-center gap-2 font-bold text-white md:flex'>
           <BadgeIcon /> {data?.feedbacks.length} Suggestions
         </div>
-        <button className='ml-auto  flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
+        <SortListbox />
+        <button className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
           <PlusIcon />
           Add Feedback
         </button>
@@ -18,25 +21,30 @@ function Home() {
       {data && data.feedbacks ? (
         <ul className='mx-auto flex w-full flex-col items-center gap-6 py-12 px-4'>
           {data.feedbacks.map((fb) => {
+            const interactionsCount =
+              fb.comments.reduce(
+                (total, curr) => total + curr._count.replies,
+                0
+              ) + fb._count.comments;
             return (
               <li
                 key={fb.id}
-                className='grid w-full grid-cols-2 grid-rows-2 place-content-between rounded-md bg-white p-4'
+                className='grid-rows-[repeat(2, max-content)] grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white p-6 md:flex md:items-center'
               >
-                <div className='col-span-2 flex flex-col items-start '>
+                <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
                   <h4 className='text-lg font-bold text-darkerblue'>
                     {fb.title}
                   </h4>
-                  <p>{fb.description}</p>
+                  <p className='text-sm text-darkgray'>{fb.description}</p>
                   <span className='rounded-md bg-gray px-4 py-1 text-xs  text-blue'>
                     {fb.category.toLowerCase()}
                   </span>
                 </div>
-                <button className='col-start-1 flex items-center gap-2 place-self-center  justify-self-start bg-gray '>
-                  <ArrowUpIcon /> 0
+                <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold md:order-1 md:flex-col '>
+                  <ArrowUpIcon /> {fb._count.upvotes}
                 </button>
-                <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end '>
-                  <CommentIcon /> 0
+                <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end md:order-3 '>
+                  <CommentIcon /> {interactionsCount}
                 </div>
               </li>
             );
@@ -50,6 +58,56 @@ function Home() {
 }
 
 export default Home;
+const SORT_LIST = [
+  { id: 1, value: "Most Upvotes" },
+  { id: 2, value: "Least Upvotes" },
+  { id: 3, value: "Most Comments" },
+  { id: 4, value: "Least Comments" },
+];
+
+function SortListbox() {
+  const [selectedValue, setSelectedValue] = useState(SORT_LIST[0]);
+
+  return (
+    <Listbox value={selectedValue} onChange={setSelectedValue}>
+      <div className=' relative '>
+        <Listbox.Button className='relative flex w-full items-center gap-2 text-xs text-lightgray'>
+          {({ open }) => (
+            <>
+              <span>Sort by:</span>
+              <span className='flex items-center gap-1 font-semibold text-white'>
+                {selectedValue.value}{" "}
+                {open ? (
+                  <ArrowUpIcon className='text-white' />
+                ) : (
+                  <ArrowDownIcon />
+                )}
+              </span>
+            </>
+          )}
+        </Listbox.Button>
+        <Listbox.Options className='absolute mt-4 w-[calc(100%+3rem)] divide-y-[1px] divide-gray rounded-md bg-white text-darkerblue shadow-xl '>
+          {SORT_LIST.map((item) => (
+            <Listbox.Option
+              key={item.id}
+              value={item}
+              className='flex cursor-pointer items-center justify-between p-2 px-4 '
+            >
+              {({ active, selected }) => (
+                <>
+                  <span className={active ? " text-purple" : ""}>
+                    {item.value}
+                  </span>
+                  {selected && <CheckIcon />}
+                </>
+              )}
+            </Listbox.Option>
+          ))}
+        </Listbox.Options>
+      </div>
+    </Listbox>
+  );
+}
 
 const EmptyBoard = () => {
   return (
@@ -106,12 +164,30 @@ const BadgeIcon = () => {
   );
 };
 
-const ArrowUpIcon = () => {
+const ArrowUpIcon = ({ className = "" }) => {
   return (
-    <svg width='10' height='7' xmlns='http://www.w3.org/2000/svg'>
+    <svg
+      width='10'
+      height='7'
+      xmlns='http://www.w3.org/2000/svg'
+      className={className}
+    >
       <path
         d='M1 6l4-4 4 4'
         stroke='#4661E6'
+        strokeWidth='2'
+        fill='none'
+        fillRule='evenodd'
+      />
+    </svg>
+  );
+};
+const ArrowDownIcon = () => {
+  return (
+    <svg width='10' height='7' xmlns='http://www.w3.org/2000/svg'>
+      <path
+        d='M1 1l4 4 4-4'
+        stroke='white'
         strokeWidth='2'
         fill='none'
         fillRule='evenodd'
@@ -127,6 +203,23 @@ const CommentIcon = () => {
         d='M2.62 16H1.346l.902-.91c.486-.491.79-1.13.872-1.823C1.036 11.887 0 9.89 0 7.794 0 3.928 3.52 0 9.03 0 14.87 0 18 3.615 18 7.455c0 3.866-3.164 7.478-8.97 7.478-1.017 0-2.078-.137-3.025-.388A4.705 4.705 0 012.62 16z'
         fill='#CDD2EE'
         fillRule='nonzero'
+      />
+    </svg>
+  );
+};
+const CheckIcon = () => {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      className='text-purple'
+      width='13'
+      height='11'
+    >
+      <path
+        fill='none'
+        stroke='#AD1FEA'
+        strokeWidth='2'
+        d='M1 5.233L4.522 9 12 1'
       />
     </svg>
   );
