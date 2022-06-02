@@ -3,7 +3,10 @@ import * as trpc from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
 import { z } from "zod";
 import db from "@/db";
-import { Prisma } from "@prisma/client";
+import { Category, Prisma } from "@prisma/client";
+
+const CategoryEnum = z.nativeEnum(Category).or(z.literal("ALL"));
+export type EnumCategory = z.infer<typeof CategoryEnum>;
 
 const transformedFeedbacks = Prisma.validator<Prisma.FeedbackArgs>()({
   select: {
@@ -21,20 +24,36 @@ export const appRouter = trpc
   .router()
   .transformer(superjson)
   .query("feedback", {
-    input: z.string(),
+    input: z.object({ sort: z.string(), filter: CategoryEnum }),
     async resolve({ input }) {
-      const feedbacks = await db.feedback.findMany({
-        select: {
-          category: true,
-          description: true,
-          id: true,
-          title: true,
-          comments: {
-            select: { _count: { select: { replies: true } } },
-          },
-          _count: { select: { upvotes: true, comments: true } },
-        },
-      });
+      const feedbacks =
+        input.filter === "ALL"
+          ? await db.feedback.findMany({
+              select: {
+                category: true,
+                description: true,
+                id: true,
+                title: true,
+                comments: {
+                  select: { _count: { select: { replies: true } } },
+                },
+                _count: { select: { upvotes: true, comments: true } },
+              },
+            })
+          : await db.feedback.findMany({
+              select: {
+                category: true,
+                description: true,
+                id: true,
+                title: true,
+                comments: {
+                  select: { _count: { select: { replies: true } } },
+                },
+                _count: { select: { upvotes: true, comments: true } },
+              },
+              where: { category: input.filter },
+            });
+
       const realFeedbacks: TransformedFeedbacks[] = feedbacks.map((fb) => {
         const interactionsCount =
           fb.comments.reduce((total, curr) => total + curr._count.replies, 0) +
@@ -49,19 +68,19 @@ export const appRouter = trpc
         };
       });
       let sortedFeedback = realFeedbacks;
-      if (input === "Most Upvotes")
+      if (input.sort === "Most Upvotes")
         sortedFeedback = realFeedbacks.sort(
           (a, b) => b.upvotesCount - a.upvotesCount
         );
-      if (input === "Least Upvotes")
+      if (input.sort === "Least Upvotes")
         sortedFeedback = realFeedbacks.sort(
           (a, b) => a.upvotesCount - b.upvotesCount
         );
-      if (input === "Most Comments")
+      if (input.sort === "Most Comments")
         sortedFeedback = realFeedbacks.sort(
           (a, b) => b.interactionsCount - a.interactionsCount
         );
-      if (input === "Least Comments")
+      if (input.sort === "Least Comments")
         sortedFeedback = realFeedbacks.sort(
           (a, b) => a.interactionsCount - b.interactionsCount
         );
