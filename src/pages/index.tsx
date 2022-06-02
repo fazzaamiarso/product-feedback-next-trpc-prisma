@@ -287,6 +287,10 @@ const FilterRadios = ({
 };
 
 const Roadmap = () => {
+  const { data, isLoading } = trpc.useQuery(["feedback.roadmap"]);
+
+  if (!data || isLoading) return <p>Loading roadmap..</p>;
+  const count = data.roadmapItems;
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex justify-between'>
@@ -297,16 +301,16 @@ const Roadmap = () => {
       </div>
       <ul className='flex flex-col'>
         <li className='flex items-center gap-2'>
-          <div className='aspect-square w-2 rounded-full bg-purple' />
-          Planned <span className='ml-auto'>0</span>
+          <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
+          Planned <span className='ml-auto'>{count.PLANNED}</span>
         </li>
         <li className='flex items-center gap-2'>
           <div className='aspect-square w-2 rounded-full bg-purple' />
-          In-progress <span className='ml-auto'>0</span>
+          In-progress <span className='ml-auto'>{count.IN_PROGRESS}</span>
         </li>
         <li className='flex items-center gap-2'>
-          <div className='aspect-square w-2 rounded-full bg-purple' />
-          Live <span className='ml-auto'>0</span>
+          <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
+          Live <span className='ml-auto'>{count.LIVE}</span>
         </li>
       </ul>
     </div>

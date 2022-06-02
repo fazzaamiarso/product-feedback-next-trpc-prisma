@@ -88,6 +88,21 @@ export const appRouter = trpc
         feedbacks: sortedFeedback,
       };
     },
+  })
+  .query("feedback.roadmap", {
+    async resolve() {
+      const roadmapItems = await db.feedback.groupBy({
+        by: ["status"],
+        where: { status: { in: ["IN_PROGRESS", "LIVE", "PLANNED"] } },
+        _count: true,
+      });
+      type TRoadmap = typeof roadmapItems[number];
+      const items = roadmapItems.reduce((acc, curr) => {
+        return { ...acc, [curr.status]: curr._count };
+      }, {} as Record<TRoadmap["status"], TRoadmap["_count"]>);
+      //TODO: types still includes "SUGGESTIONS" which is not suppose to be there
+      return { roadmapItems: items };
+    },
   });
 
 // export type definition of API
