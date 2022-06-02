@@ -9,7 +9,7 @@ export default function Document() {
           rel='stylesheet'
         />
       </Head>
-      <body className='font-jost'>
+      <body className=' bg-gray font-jost'>
         <Main />
         <NextScript />
       </body>
