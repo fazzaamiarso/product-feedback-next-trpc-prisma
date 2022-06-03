@@ -26,33 +26,19 @@ export const appRouter = trpc
   .query("feedback", {
     input: z.object({ sort: z.string(), filter: CategoryEnum }),
     async resolve({ input }) {
-      const feedbacks =
-        input.filter === "ALL"
-          ? await db.feedback.findMany({
-              select: {
-                category: true,
-                description: true,
-                id: true,
-                title: true,
-                comments: {
-                  select: { _count: { select: { replies: true } } },
-                },
-                _count: { select: { upvotes: true, comments: true } },
-              },
-            })
-          : await db.feedback.findMany({
-              select: {
-                category: true,
-                description: true,
-                id: true,
-                title: true,
-                comments: {
-                  select: { _count: { select: { replies: true } } },
-                },
-                _count: { select: { upvotes: true, comments: true } },
-              },
-              where: { category: input.filter },
-            });
+      const feedbacks = await db.feedback.findMany({
+        select: {
+          category: true,
+          description: true,
+          id: true,
+          title: true,
+          comments: {
+            select: { _count: { select: { replies: true } } },
+          },
+          _count: { select: { upvotes: true, comments: true } },
+        },
+        where: { category: input.filter === "ALL" ? undefined : input.filter },
+      });
 
       const realFeedbacks: TransformedFeedbacks[] = feedbacks.map((fb) => {
         const interactionsCount =
@@ -67,25 +53,16 @@ export const appRouter = trpc
           interactionsCount,
         };
       });
-      let sortedFeedback = realFeedbacks;
       if (input.sort === "Most Upvotes")
-        sortedFeedback = realFeedbacks.sort(
-          (a, b) => b.upvotesCount - a.upvotesCount
-        );
+        realFeedbacks.sort((a, b) => b.upvotesCount - a.upvotesCount);
       if (input.sort === "Least Upvotes")
-        sortedFeedback = realFeedbacks.sort(
-          (a, b) => a.upvotesCount - b.upvotesCount
-        );
+        realFeedbacks.sort((a, b) => a.upvotesCount - b.upvotesCount);
       if (input.sort === "Most Comments")
-        sortedFeedback = realFeedbacks.sort(
-          (a, b) => b.interactionsCount - a.interactionsCount
-        );
+        realFeedbacks.sort((a, b) => b.interactionsCount - a.interactionsCount);
       if (input.sort === "Least Comments")
-        sortedFeedback = realFeedbacks.sort(
-          (a, b) => a.interactionsCount - b.interactionsCount
-        );
+        realFeedbacks.sort((a, b) => a.interactionsCount - b.interactionsCount);
       return {
-        feedbacks: sortedFeedback,
+        feedbacks: realFeedbacks,
       };
     },
   })
