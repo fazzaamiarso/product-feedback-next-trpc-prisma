@@ -2,6 +2,21 @@ import { Tab } from "@headlessui/react";
 import { PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
+import { trpc } from "utils/trpc";
+
+const ROADMAPS_ITEMS = [
+  {
+    title: "Planned",
+    value: "PLANNED" as const,
+    description: "Ideas prioritized for research",
+  },
+  {
+    title: "In-Progress",
+    value: "IN_PROGRESS" as const,
+    description: "Features currently being developed",
+  },
+  { title: "Live", value: "LIVE" as const, description: "Released Features" },
+];
 
 const Roadmaps = () => {
   return (
@@ -68,28 +83,42 @@ const CategoryTabs = () => {
         </Tab>
       </Tab.List>
       <Tab.Panels>
-        <Tab.Panel>
-          <RoadmapItem />
-        </Tab.Panel>
-        <Tab.Panel>
-          <RoadmapItem />
-        </Tab.Panel>
-        <Tab.Panel>
-          <RoadmapItem />
-        </Tab.Panel>
+        {ROADMAPS_ITEMS.map((item) => {
+          return (
+            <Tab.Panel key={item.value}>
+              <RoadmapItem {...item} />
+            </Tab.Panel>
+          );
+        })}
       </Tab.Panels>
     </Tab.Group>
   );
 };
 
-const RoadmapItem = () => {
+const RoadmapItem = ({
+  title,
+  description,
+  value,
+}: typeof ROADMAPS_ITEMS[number]) => {
+  const { data, isLoading } = trpc.useQuery(["feedback.roadmapItem", value]);
+
   return (
     <section className='mx-auto w-11/12 py-8 '>
       <div className='flex flex-col items-start'>
-        <h2 className='text-xl font-bold text-darkerblue'>Planned (0)</h2>
-        <p className='text-darkgray'>Features currently being developed</p>
+        <h2 className='text-xl font-bold text-darkerblue'>{title} (0)</h2>
+        <p className='text-darkgray'>{description}</p>
       </div>
-      <ul></ul>
+      {isLoading ? (
+        <p>Loading your data..</p>
+      ) : data && data.roadmaps.length > 0 ? (
+        <ul>
+          {data.roadmaps.map((item) => {
+            return <li key={item.id}>{JSON.stringify(item, null, 2)}</li>;
+          })}
+        </ul>
+      ) : (
+        <p>No Feedback yet</p>
+      )}
     </section>
   );
 };
