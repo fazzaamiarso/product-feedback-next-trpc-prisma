@@ -53,8 +53,8 @@ function Home() {
         </Drawer>
       </header>
       <header className='mx-auto  hidden w-11/12 grid-cols-3 grid-rows-1  gap-x-4 py-8 md:grid lg:flex lg:basis-1/3 lg:flex-col lg:justify-start lg:gap-6 lg:py-0 '>
-        <div className='flex flex-col items-start  justify-end rounded-md bg-[url("/assets/suggestions/tablet/background-header.png")] bg-cover bg-no-repeat p-6'>
-          <h1 className=' flex flex-col items-start text-lg font-bold text-white'>
+        <div className='flex flex-col items-start justify-end rounded-md bg-[url("/assets/suggestions/tablet/background-header.png")] bg-cover bg-no-repeat p-6 lg:min-h-[165px]'>
+          <h1 className=' flex flex-col items-start text-lg font-bold text-white lg:text-xl'>
             Frontend Mentor{" "}
             <span className='text-normal font-normal'>Feedback Board</span>
           </h1>
@@ -85,7 +85,7 @@ function Home() {
             </a>
           </Link>
         </div>
-        {data && data.feedbacks ? (
+        {data && data.feedbacks.length > 0 ? (
           <ul className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
             {data.feedbacks.map((fb) => {
               return (
@@ -144,7 +144,7 @@ function SortListbox({
             </>
           )}
         </Listbox.Button>
-        <Listbox.Options className='absolute mt-4 w-[calc(100%+3rem)] divide-y-[1px] divide-gray rounded-md bg-white text-darkerblue shadow-xl '>
+        <Listbox.Options className='absolute z-40 mt-4 w-[calc(100%+3rem)] divide-y-[1px] divide-gray rounded-md bg-white text-darkerblue shadow-xl '>
           {SORT_LIST.map((item, idx) => (
             <Listbox.Option
               key={idx}
@@ -289,30 +289,41 @@ const FilterRadios = ({
 const Roadmap = () => {
   const { data, isLoading } = trpc.useQuery(["feedback.roadmap"]);
 
-  if (!data || isLoading) return <p>Loading roadmap..</p>;
-  const count = data.roadmapItems;
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex justify-between'>
-        <h2 className='font-bold'>Roadmap</h2>
-        <Link href='#'>
+        <h2 className='text-lg font-bold text-darkerblue'>Roadmap</h2>
+        <Link href='/feedback/roadmap'>
           <a className='text-blue underline hover:no-underline'>View</a>
         </Link>
       </div>
-      <ul className='flex flex-col'>
-        <li className='flex items-center gap-2'>
-          <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
-          Planned <span className='ml-auto'>{count.PLANNED}</span>
-        </li>
-        <li className='flex items-center gap-2'>
-          <div className='aspect-square w-2 rounded-full bg-purple' />
-          In-progress <span className='ml-auto'>{count.IN_PROGRESS}</span>
-        </li>
-        <li className='flex items-center gap-2'>
-          <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
-          Live <span className='ml-auto'>{count.LIVE}</span>
-        </li>
-      </ul>
+      {isLoading ? (
+        <p>Loading roadmap..</p>
+      ) : (
+        <ul className='flex flex-col gap-2'>
+          <li className='flex items-center gap-4'>
+            <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
+            Planned{" "}
+            <span className='ml-auto font-semibold text-darkgray'>
+              {data?.roadmapItems.PLANNED ?? 0}
+            </span>
+          </li>
+          <li className='flex items-center gap-4'>
+            <div className='aspect-square w-2 rounded-full bg-purple' />
+            In-progress{" "}
+            <span className='ml-auto font-semibold text-darkgray'>
+              {data?.roadmapItems.IN_PROGRESS ?? 0}
+            </span>
+          </li>
+          <li className='flex items-center gap-4'>
+            <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
+            Live{" "}
+            <span className='ml-auto font-semibold text-darkgray'>
+              {data?.roadmapItems.LIVE ?? 0}
+            </span>
+          </li>
+        </ul>
+      )}
     </div>
   );
 };

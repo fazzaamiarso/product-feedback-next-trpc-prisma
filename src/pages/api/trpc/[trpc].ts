@@ -39,6 +39,7 @@ export const appRouter = trpc
         },
         where: { category: input.filter === "ALL" ? undefined : input.filter },
       });
+      if (feedbacks.length === 0) return { feedbacks: [] };
 
       const realFeedbacks: TransformedFeedbacks[] = feedbacks.map((fb) => {
         const interactionsCount =
