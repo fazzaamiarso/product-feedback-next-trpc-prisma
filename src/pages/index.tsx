@@ -7,7 +7,7 @@ import {
   CloseIcon,
   CommentIcon,
   HamburgerIcon,
-  PlusIcon,
+  PlusIcon
 } from "components/Icons";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,12 +15,7 @@ import { Fragment, ReactNode, useRef, useState } from "react";
 import { trpc } from "../utils/trpc";
 import type { EnumCategory } from "./api/trpc/[trpc]";
 
-const SORT_LIST = [
-  "Most Upvotes",
-  "Least Upvotes",
-  "Most Comments",
-  "Least Comments",
-];
+const SORT_LIST = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"];
 const CATEGORIES = ["All", "UI", "UX", "Enhancement", "Bug", "Feature"];
 
 function Home() {
@@ -28,7 +23,7 @@ function Home() {
   const [sortValue, setSortValue] = useState(SORT_LIST[0]);
   const { data, isLoading } = trpc.useQuery([
     "feedback",
-    { sort: sortValue, filter: filterValue.toUpperCase() as EnumCategory },
+    { sort: sortValue, filter: filterValue.toUpperCase() as EnumCategory }
   ]);
 
   return (
@@ -36,16 +31,12 @@ function Home() {
       <header className='relative z-20 flex w-full justify-between bg-[url("/assets/suggestions/mobile/background-header.png")] bg-cover bg-no-repeat p-4 md:hidden'>
         <div className='rounded-md md:bg-[url("/assets/suggestions/tablet/background-header.png")] md:bg-cover md:bg-no-repeat md:p-6'>
           <h1 className='flex flex-col items-start text-lg font-bold text-white'>
-            Frontend Mentor{" "}
-            <span className='text-normal font-normal'>Feedback Board</span>
+            Frontend Mentor <span className='text-normal font-normal'>Feedback Board</span>
           </h1>
         </div>
         <Drawer>
           <WidgetCard>
-            <FilterRadios
-              selectedValue={filterValue}
-              setSelectedValue={setFilterValue}
-            />
+            <FilterRadios selectedValue={filterValue} setSelectedValue={setFilterValue} />
           </WidgetCard>
           <WidgetCard>
             <Roadmap />
@@ -55,15 +46,11 @@ function Home() {
       <header className='mx-auto  hidden w-11/12 grid-cols-3 grid-rows-1  gap-x-4 py-8 md:grid lg:flex lg:basis-1/3 lg:flex-col lg:justify-start lg:gap-6 lg:py-0 '>
         <div className='flex flex-col items-start justify-end rounded-md bg-[url("/assets/suggestions/tablet/background-header.png")] bg-cover bg-no-repeat p-6 lg:min-h-[165px]'>
           <h1 className=' flex flex-col items-start text-lg font-bold text-white lg:text-xl'>
-            Frontend Mentor{" "}
-            <span className='text-normal font-normal'>Feedback Board</span>
+            Frontend Mentor <span className='text-normal font-normal'>Feedback Board</span>
           </h1>
         </div>
         <WidgetCard>
-          <FilterRadios
-            selectedValue={filterValue}
-            setSelectedValue={setFilterValue}
-          />
+          <FilterRadios selectedValue={filterValue} setSelectedValue={setFilterValue} />
         </WidgetCard>
         <WidgetCard>
           <Roadmap />
@@ -74,10 +61,7 @@ function Home() {
           <div className='mr-8 hidden items-center gap-2 font-bold text-white md:flex'>
             <BadgeIcon /> {data?.feedbacks.length} Suggestions
           </div>
-          <SortListbox
-            selectedValue={sortValue}
-            setSelectedValue={setSortValue}
-          />
+          <SortListbox selectedValue={sortValue} setSelectedValue={setSortValue} />
           <Link href='/feedback/new'>
             <a className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
               <PlusIcon />
@@ -95,7 +79,9 @@ function Home() {
                 >
                   <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
                     <h4 className='text-lg font-bold text-darkerblue'>
-                      {fb.title}
+                      <Link href='#'>
+                        <a className='hover:text-blue'>{fb.title}</a>
+                      </Link>
                     </h4>
                     <p className='text-sm text-darkgray'>{fb.description}</p>
                     <span className='rounded-md bg-gray px-4 py-1 text-xs  text-blue'>
@@ -126,7 +112,7 @@ export default Home;
 
 function SortListbox({
   selectedValue,
-  setSelectedValue,
+  setSelectedValue
 }: {
   selectedValue: string;
   setSelectedValue: (val: string) => void;
@@ -174,12 +160,10 @@ const EmptyBoard = () => {
         width={200}
         height={200}
       />
-      <p className='text-2xl font-bold text-darkerblue'>
-        There is no feedback yet.
-      </p>
+      <p className='text-2xl font-bold text-darkerblue'>There is no feedback yet.</p>
       <p className='text-normal text-darkgray'>
-        Got a suggestion? Found a bug that needs to be squashed? We love hearing
-        about new ideas to improve our app.
+        Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
+        improve our app.
       </p>
       <button className='mt-6 flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
         <PlusIcon />
@@ -191,25 +175,18 @@ const EmptyBoard = () => {
 
 function Drawer({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const closeRef = useRef(null);
 
   return (
     <>
       <button
         type='button'
-        onClick={() => setOpen(!open)}
-        ref={closeRef}
+        onClick={() => queueMicrotask(() => setOpen(!open))}
         className='md:hidden'
       >
         {open ? <CloseIcon /> : <HamburgerIcon />}
       </button>
       <Transition.Root show={open} as={Fragment}>
-        <Dialog
-          as='div'
-          className='relative z-10 md:hidden'
-          onClose={setOpen}
-          initialFocus={closeRef}
-        >
+        <Dialog as='div' className='relative z-10 md:hidden' onClose={setOpen}>
           <Transition.Child
             as={Fragment}
             enter='ease-in-out duration-500'
@@ -236,9 +213,7 @@ function Drawer({ children }: { children: ReactNode }) {
                 >
                   <Dialog.Panel className='pointer-events-auto w-screen max-w-md'>
                     <div className='flex h-full flex-col overflow-y-scroll bg-gray shadow-xl'>
-                      <Dialog.Title className='sr-only'>
-                        Filter and Roadmap
-                      </Dialog.Title>
+                      <Dialog.Title className='sr-only'>Filter and Roadmap</Dialog.Title>
                       <div className='space-y-6 pt-28 '>{children}</div>
                     </div>
                   </Dialog.Panel>
@@ -254,7 +229,7 @@ function Drawer({ children }: { children: ReactNode }) {
 
 const FilterRadios = ({
   selectedValue,
-  setSelectedValue,
+  setSelectedValue
 }: {
   selectedValue: string;
   setSelectedValue: (val: string) => void;
@@ -287,7 +262,7 @@ const FilterRadios = ({
 };
 
 const Roadmap = () => {
-  const { data, isLoading } = trpc.useQuery(["feedback.roadmap"]);
+  const { data, isLoading } = trpc.useQuery(["feedback.roadmapCount"]);
 
   return (
     <div className='flex flex-col gap-4'>
@@ -330,8 +305,6 @@ const Roadmap = () => {
 
 const WidgetCard = ({ children }: { children: ReactNode }) => {
   return (
-    <div className='mx-auto w-10/12 rounded-md bg-white p-4 md:w-full md:p-6 '>
-      {children}
-    </div>
+    <div className='mx-auto w-10/12 rounded-md bg-white p-4 md:w-full md:p-6 '>{children}</div>
   );
 };

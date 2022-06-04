@@ -1,10 +1,5 @@
 import { Tab } from "@headlessui/react";
-import {
-  ArrowLeftIcon,
-  ArrowUpIcon,
-  CommentIcon,
-  PlusIcon,
-} from "components/Icons";
+import { ArrowLeftIcon, ArrowUpIcon, CommentIcon, PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
 import { trpc } from "utils/trpc";
@@ -14,28 +9,26 @@ const ROADMAPS_ITEMS = [
     title: "Planned",
     value: "PLANNED" as const,
     description: "Ideas prioritized for research",
-    color: "#F49F85",
+    color: "#F49F85"
   },
   {
     title: "In-Progress",
     value: "IN_PROGRESS" as const,
     description: "Features currently being developed",
-    color: "#AD1FEA",
+    color: "#AD1FEA"
   },
   {
     title: "Live",
     value: "LIVE" as const,
     description: "Released Features",
-    color: "#62BCFA",
-  },
+    color: "#62BCFA"
+  }
 ];
-const mergeClassNames = (...className: string[]) =>
-  className.filter(Boolean).join(" ");
 
 const Roadmaps = () => {
   return (
     <>
-      <header className='flex w-full items-center bg-darkerblue p-4'>
+      <header className='mx-auto flex w-full max-w-5xl items-center bg-darkerblue p-4 lg:rounded-md lg:p-6'>
         <div className='flex flex-col items-start text-white'>
           <Link href='/'>
             <a className='flex items-center gap-4'>
@@ -51,7 +44,7 @@ const Roadmaps = () => {
           </a>
         </Link>
       </header>
-      <main>
+      <main className='mx-auto max-w-5xl'>
         <CategoryTabs />
         <div className='hidden grid-cols-3 md:grid '>
           {ROADMAPS_ITEMS.map((item) => {
@@ -66,7 +59,7 @@ const Roadmaps = () => {
 export default Roadmaps;
 
 const CategoryTabs = () => {
-  const { data, isLoading } = trpc.useQuery(["feedback.roadmap"]);
+  const { data, isLoading } = trpc.useQuery(["feedback.roadmapCount"]);
 
   return (
     <Tab.Group as='div' defaultIndex={0} className='md:hidden'>
@@ -100,13 +93,8 @@ const CategoryTabs = () => {
   );
 };
 
-const RoadmapItem = ({
-  title,
-  description,
-  value,
-  color,
-}: typeof ROADMAPS_ITEMS[number]) => {
-  const { data, isLoading } = trpc.useQuery(["feedback.roadmapItem", value]);
+const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS[number]) => {
+  const { data, isLoading } = trpc.useQuery(["feedback.roadmap", value]);
 
   return (
     <section className='mx-auto w-11/12 py-8 '>
@@ -124,23 +112,18 @@ const RoadmapItem = ({
             return (
               <li
                 key={item.id}
-                className={mergeClassNames(
-                  `grid-rows-[repeat(2, max-content)]  grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8 rounded-md   border-t-8 bg-white p-6`,
-                  `border-t-[${color}]`
-                )}
+                className='grid-rows-[repeat(2, max-content)]  grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8 rounded-md   border-t-8 bg-white p-6'
+                style={{ borderTopColor: color }}
               >
                 <div className='col-span-2 flex flex-col items-start space-y-2  '>
                   <div className='flex items-center gap-4'>
-                    <div
-                      className={mergeClassNames(
-                        "aspect-square w-2 rounded-full",
-                        `bg-[${color}]`
-                      )}
-                    />
+                    <div className='aspect-square w-2 rounded-full' style={{ background: color }} />
                     {title}
                   </div>
                   <h4 className='text-lg font-bold text-darkerblue'>
-                    {item.title}
+                    <Link href='#'>
+                      <a className='hover:text-blue'>{item.title}</a>
+                    </Link>
                   </h4>
                   <p className='text-sm text-darkgray'>{item.description}</p>
                   <span className='rounded-md bg-gray px-4 py-1 text-xs  text-blue'>

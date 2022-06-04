@@ -8,19 +8,26 @@ import { Category, Prisma, Status } from "@prisma/client";
 const CategoryEnum = z.nativeEnum(Category).or(z.literal("ALL"));
 export type EnumCategory = z.infer<typeof CategoryEnum>;
 
-const RoadmapsEnum = ["IN_PROGRESS", "LIVE", "PLANNED"] as const;
+const roadmapStatus = ["IN_PROGRESS", "LIVE", "PLANNED"] as const;
 
-const transformedFeedbacks = Prisma.validator<Prisma.FeedbackArgs>()({
+const feedbackWithCounts = Prisma.validator<Prisma.FeedbackFindManyArgs>()({
   select: {
-    category: true,
-    description: true,
     id: true,
     title: true,
-  },
+    description: true,
+    category: true,
+    status: true,
+    _count: { select: { upvotes: true } },
+    comments: {
+      include: { _count: { select: { replies: true } } }
+    }
+  }
 });
-type TransformedFeedbacks = Prisma.FeedbackGetPayload<
-  typeof transformedFeedbacks
-> & { interactionsCount: number; upvotesCount: number };
+type FeedbackWithCounts = Prisma.FeedbackGetPayload<typeof feedbackWithCounts>;
+
+const countFeedbackInteractions = (comments: FeedbackWithCounts["comments"]) => {
+  return comments.reduce((total, curr) => total + curr._count.replies + 1, 0);
+};
 
 export const appRouter = trpc
   .router()
@@ -29,31 +36,20 @@ export const appRouter = trpc
     input: z.object({ sort: z.string(), filter: CategoryEnum }),
     async resolve({ input }) {
       const feedbacks = await db.feedback.findMany({
-        select: {
-          category: true,
-          description: true,
-          id: true,
-          title: true,
-          comments: {
-            select: { _count: { select: { replies: true } } },
-          },
-          _count: { select: { upvotes: true, comments: true } },
-        },
-        where: { category: input.filter === "ALL" ? undefined : input.filter },
+        ...feedbackWithCounts,
+        where: { category: input.filter === "ALL" ? undefined : input.filter }
       });
       if (feedbacks.length === 0) return { feedbacks: [] };
 
       const realFeedbacks = feedbacks.map((fb) => {
-        const interactionsCount =
-          fb.comments.reduce((total, curr) => total + curr._count.replies, 0) +
-          fb._count.comments;
+        const interactionsCount = countFeedbackInteractions(fb.comments);
         return {
           category: fb.category,
           description: fb.description,
           id: fb.id,
           title: fb.title,
           upvotesCount: fb._count.upvotes,
-          interactionsCount,
+          interactionsCount
         };
       });
       if (input.sort === "Most Upvotes")
@@ -65,48 +61,34 @@ export const appRouter = trpc
       if (input.sort === "Least Comments")
         realFeedbacks.sort((a, b) => a.interactionsCount - b.interactionsCount);
       return {
-        feedbacks: realFeedbacks,
+        feedbacks: realFeedbacks
       };
-    },
+    }
   })
-  .query("feedback.roadmap", {
+  .query("feedback.roadmapCount", {
     async resolve() {
-      const roadmapItems = await db.feedback.groupBy({
+      const roadmapsFeedback = await db.feedback.groupBy({
         by: ["status"],
         where: { status: { in: ["IN_PROGRESS", "LIVE", "PLANNED"] } },
-        _count: true,
+        _count: true
       });
-      type TRoadmap = typeof roadmapItems[number];
-      const items = roadmapItems.reduce((acc, curr) => {
+
+      const roadmapItems = roadmapsFeedback.reduce((acc, curr) => {
         return { ...acc, [curr.status]: curr._count };
-      }, {} as Record<TRoadmap["status"], TRoadmap["_count"]>);
-      //TODO: types still includes "SUGGESTIONS" which is not suppose to be there
-      return { roadmapItems: items };
-    },
+      }, {} as Record<Exclude<Status, "SUGGESTION">, number>);
+      return { roadmapItems };
+    }
   })
-  .query("feedback.roadmapItem", {
-    input: z.enum(RoadmapsEnum),
+  .query("feedback.roadmap", {
+    input: z.enum(roadmapStatus),
     async resolve({ input }) {
       const feedbacks = await db.feedback.findMany({
-        select: {
-          category: true,
-          description: true,
-          id: true,
-          title: true,
-          status: true,
-          comments: {
-            select: { _count: { select: { replies: true } } },
-          },
-          _count: { select: { upvotes: true, comments: true } },
-        },
-        where: { status: { equals: input } },
+        ...feedbackWithCounts,
+        where: { status: { equals: input } }
       });
       if (feedbacks.length === 0) return { roadmaps: [] };
-
       const realFeedbacks = feedbacks.map((fb) => {
-        const interactionsCount =
-          fb.comments.reduce((total, curr) => total + curr._count.replies, 0) +
-          fb._count.comments;
+        const interactionsCount = countFeedbackInteractions(fb.comments);
         return {
           status: fb.status,
           category: fb.category,
@@ -114,11 +96,11 @@ export const appRouter = trpc
           id: fb.id,
           title: fb.title,
           upvotesCount: fb._count.upvotes,
-          interactionsCount,
+          interactionsCount
         };
       });
       return { roadmaps: realFeedbacks };
-    },
+    }
   });
 
 // export type definition of API
@@ -127,5 +109,5 @@ export type AppRouter = typeof appRouter;
 // export API handler
 export default trpcNext.createNextApiHandler({
   router: appRouter,
-  createContext: () => null,
+  createContext: () => null
 });
