@@ -125,7 +125,8 @@ function SortListbox({
             <>
               <span>Sort by:</span>
               <span className='flex items-center gap-1 font-semibold text-white'>
-                {selectedValue} {open ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                {selectedValue}{" "}
+                {open ? <ArrowUpIcon className='stroke-white' /> : <ArrowDownIcon />}
               </span>
             </>
           )}

@@ -1,6 +1,15 @@
-export const PlusIcon = () => {
+import React from "react";
+
+function constructSVG<T extends React.ComponentPropsWithoutRef<"svg">>(
+  CustomSVG: React.ComponentType<T>
+) {
+  const ConstructedSVG = (props: T) => <CustomSVG {...props} />;
+  return ConstructedSVG;
+}
+
+export const PlusIcon = constructSVG((props) => {
   return (
-    <svg width='9' height='9' xmlns='http://www.w3.org/2000/svg'>
+    <svg width='9' height='9' xmlns='http://www.w3.org/2000/svg' {...props}>
       <text
         transform='translate(-24 -20)'
         fill='#F2F4FE'
@@ -15,18 +24,12 @@ export const PlusIcon = () => {
       </text>
     </svg>
   );
-};
+});
 
 export const ArrowDownIcon = () => {
   return (
     <svg width='10' height='7' xmlns='http://www.w3.org/2000/svg'>
-      <path
-        d='M1 1l4 4 4-4'
-        stroke='white'
-        strokeWidth='2'
-        fill='none'
-        fillRule='evenodd'
-      />
+      <path d='M1 1l4 4 4-4' stroke='white' strokeWidth='2' fill='none' fillRule='evenodd' />
     </svg>
   );
 };
@@ -45,43 +48,28 @@ export const CommentIcon = () => {
 
 export const CheckIcon = () => {
   return (
-    <svg
-      xmlns='http://www.w3.org/2000/svg'
-      className='text-purple'
-      width='13'
-      height='11'
-    >
-      <path
-        fill='none'
-        stroke='#AD1FEA'
-        strokeWidth='2'
-        d='M1 5.233L4.522 9 12 1'
-      />
+    <svg xmlns='http://www.w3.org/2000/svg' className='text-purple' width='13' height='11'>
+      <path fill='none' stroke='#AD1FEA' strokeWidth='2' d='M1 5.233L4.522 9 12 1' />
     </svg>
   );
 };
 
-export const ArrowUpIcon = () => {
-  return (
-    <svg width='10' height='7' xmlns='http://www.w3.org/2000/svg'>
-      <path
-        d='M1 6l4-4 4 4'
-        stroke='#4661E6'
-        strokeWidth='2'
-        fill='none'
-        fillRule='evenodd'
-      />
-    </svg>
-  );
-};
-export const ArrowLeftIcon = () => {
+export const ArrowUpIcon = constructSVG((props) => {
   return (
     <svg
-      width='7'
-      className='stroke-white'
-      height='10'
+      width='10'
+      height='7'
       xmlns='http://www.w3.org/2000/svg'
+      className='stroke-[#4661E6]'
+      {...props}
     >
+      <path d='M1 6l4-4 4 4' strokeWidth='2' fill='none' fillRule='evenodd' />
+    </svg>
+  );
+});
+export const ArrowLeftIcon = () => {
+  return (
+    <svg width='7' className='stroke-white' height='10' xmlns='http://www.w3.org/2000/svg'>
       <path d='M6 9L2 5l4-4' strokeWidth='2' fill='none' fillRule='evenodd' />
     </svg>
   );
