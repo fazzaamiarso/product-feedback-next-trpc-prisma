@@ -2,6 +2,7 @@ import { Tab } from "@headlessui/react";
 import { ArrowLeftIcon, ArrowUpIcon, CommentIcon, PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
+import { capitalize } from "utils/display";
 import { trpc } from "utils/trpc";
 
 const ROADMAPS_ITEMS = [
@@ -28,7 +29,7 @@ const ROADMAPS_ITEMS = [
 const Roadmaps = () => {
   return (
     <>
-      <header className='mx-auto flex w-full max-w-5xl items-center bg-darkerblue p-4 lg:rounded-md lg:p-6'>
+      <header className='mx-auto flex w-full max-w-5xl items-center bg-darkerblue p-4 lg:mt-12 lg:rounded-md lg:p-6'>
         <div className='flex flex-col items-start text-white'>
           <Link href='/'>
             <a className='flex items-center gap-4'>
@@ -69,11 +70,12 @@ const CategoryTabs = () => {
             <Tab key={item.description} as={Fragment}>
               {({ selected }) => (
                 <button
-                  className={`basis-full  py-4 font-semibold text-darkerblue opacity-50 ${
+                  className={`relative basis-full  py-4 font-semibold text-darkerblue opacity-50 ${
                     selected ? "opacity-100" : ""
                   }`}
                 >
                   {item.title} ({data?.roadmapItems[item.value] ?? 0})
+                  {selected && <span className='absolute bottom-0 left-0 h-1 w-full bg-purple' />}
                 </button>
               )}
             </Tab>
@@ -112,22 +114,22 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
             return (
               <li
                 key={item.id}
-                className='grid-rows-[repeat(2, max-content)]  grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8 rounded-md   border-t-8 bg-white p-6'
+                className='grid-rows-[repeat(2, max-content)]  grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8 rounded-md   border-t-4 bg-white p-6'
                 style={{ borderTopColor: color }}
               >
                 <div className='col-span-2 flex flex-col items-start space-y-2  '>
-                  <div className='flex items-center gap-4'>
+                  <div className='flex items-center gap-4 text-darkgray'>
                     <div className='aspect-square w-2 rounded-full' style={{ background: color }} />
                     {title}
                   </div>
                   <h4 className='text-lg font-bold text-darkerblue'>
-                    <Link href='#'>
+                    <Link href={`/feedback/${item.id}`} prefetch>
                       <a className='hover:text-blue'>{item.title}</a>
                     </Link>
                   </h4>
                   <p className='text-sm text-darkgray'>{item.description}</p>
-                  <span className='rounded-md bg-gray px-4 py-1 text-xs  text-blue'>
-                    {item.category.toLowerCase()}
+                  <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
+                    {capitalize(item.category.toLowerCase())}
                   </span>
                 </div>
                 <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF]  '>

@@ -101,6 +101,16 @@ export const appRouter = trpc
       });
       return { roadmaps: realFeedbacks };
     }
+  })
+  .query("feedback.id", {
+    input: z.object({ id: z.string() }),
+    async resolve({ input }) {
+      const feedback = await db.feedback.findUnique({
+        where: { id: input.id },
+        include: { comments: { include: { replies: true } } }
+      });
+      return feedback;
+    }
   });
 
 // export type definition of API

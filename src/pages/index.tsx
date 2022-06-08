@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, ReactNode, useRef, useState } from "react";
+import { capitalize } from "utils/display";
 import { trpc } from "../utils/trpc";
 import type { EnumCategory } from "./api/trpc/[trpc]";
 
@@ -79,13 +80,13 @@ function Home() {
                 >
                   <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
                     <h4 className='text-lg font-bold text-darkerblue'>
-                      <Link href='#'>
+                      <Link href={`/feedback/${fb.id}`} prefetch>
                         <a className='hover:text-blue'>{fb.title}</a>
                       </Link>
                     </h4>
                     <p className='text-sm text-darkgray'>{fb.description}</p>
-                    <span className='rounded-md bg-gray px-4 py-1 text-xs  text-blue'>
-                      {fb.category.toLowerCase()}
+                    <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
+                      {capitalize(fb.category.toLowerCase())}
                     </span>
                   </div>
                   <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:flex-col '>
