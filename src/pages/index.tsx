@@ -1,31 +1,32 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
+import { Category } from "@prisma/client";
+import { FeedbackCard } from "components/feedback/FeedbackCard";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   BadgeIcon,
   CheckIcon,
   CloseIcon,
-  CommentIcon,
   HamburgerIcon,
   PlusIcon
 } from "components/Icons";
+import { InferQueryInput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, ReactNode, useRef, useState } from "react";
+import { Fragment, ReactNode, useState } from "react";
 import { capitalize } from "utils/display";
 import { trpc } from "../utils/trpc";
-import type { EnumCategory } from "./api/trpc/[trpc]";
 
-const SORT_LIST = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"];
-const CATEGORIES = ["All", "UI", "UX", "Enhancement", "Bug", "Feature"];
+const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
+const filterCategories = ["ALL", ...Object.values(Category)] as const;
+type FilterValues = InferQueryInput<"feedback">["filter"];
+type SortValues = InferQueryInput<"feedback">["sort"];
 
 function Home() {
-  const [filterValue, setFilterValue] = useState(CATEGORIES[0]);
-  const [sortValue, setSortValue] = useState(SORT_LIST[0]);
-  const { data, isLoading } = trpc.useQuery([
-    "feedback",
-    { sort: sortValue, filter: filterValue.toUpperCase() as EnumCategory }
-  ]);
+  const [filterValue, setFilterValue] = useState<FilterValues>(filterCategories[0]);
+  const [sortValue, setSortValue] = useState<SortValues>(sortItems[0]);
+  const { data, isLoading } = trpc.useQuery(["feedback", { sort: sortValue, filter: filterValue }]);
+  const selectFilter = (val: FilterValues) => setFilterValue(val);
 
   return (
     <div className='mx-auto max-w-5xl gap-8 lg:flex lg:p-8'>
@@ -37,7 +38,7 @@ function Home() {
         </div>
         <Drawer>
           <WidgetCard>
-            <FilterRadios selectedValue={filterValue} setSelectedValue={setFilterValue} />
+            <FilterRadios selectedValue={filterValue} setSelectedValue={selectFilter} />
           </WidgetCard>
           <WidgetCard>
             <Roadmap />
@@ -51,7 +52,7 @@ function Home() {
           </h1>
         </div>
         <WidgetCard>
-          <FilterRadios selectedValue={filterValue} setSelectedValue={setFilterValue} />
+          <FilterRadios selectedValue={filterValue} setSelectedValue={selectFilter} />
         </WidgetCard>
         <WidgetCard>
           <Roadmap />
@@ -73,30 +74,7 @@ function Home() {
         {data && data.feedbacks.length > 0 ? (
           <ul className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
             {data.feedbacks.map((fb) => {
-              return (
-                <li
-                  key={fb.id}
-                  className='grid-rows-[repeat(2, max-content)] grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white p-6 md:flex md:items-center'
-                >
-                  <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
-                    <h4 className='text-lg font-bold text-darkerblue'>
-                      <Link href={`/feedback/${fb.id}`} prefetch>
-                        <a className='hover:text-blue'>{fb.title}</a>
-                      </Link>
-                    </h4>
-                    <p className='text-sm text-darkgray'>{fb.description}</p>
-                    <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
-                      {capitalize(fb.category.toLowerCase())}
-                    </span>
-                  </div>
-                  <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:flex-col '>
-                    <ArrowUpIcon /> {fb.upvotesCount}
-                  </button>
-                  <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end md:order-3 '>
-                    <CommentIcon /> {fb.interactionsCount}
-                  </div>
-                </li>
-              );
+              return <FeedbackCard key={fb.id} feedback={fb} />;
             })}
           </ul>
         ) : isLoading ? (
@@ -115,11 +93,14 @@ function SortListbox({
   selectedValue,
   setSelectedValue
 }: {
-  selectedValue: string;
-  setSelectedValue: (val: string) => void;
+  selectedValue: SortValues;
+  setSelectedValue: (val: SortValues) => void;
 }) {
   return (
-    <Listbox value={selectedValue} onChange={setSelectedValue}>
+    <Listbox
+      value={selectedValue}
+      onChange={(selected) => setSelectedValue(selected as SortValues)}
+    >
       <div className=' relative '>
         <Listbox.Button className='relative flex w-full items-center gap-2 text-xs text-lightgray'>
           {({ open }) => (
@@ -133,7 +114,7 @@ function SortListbox({
           )}
         </Listbox.Button>
         <Listbox.Options className='absolute z-40 mt-4 w-[calc(100%+3rem)] divide-y-[1px] divide-gray rounded-md bg-white text-darkerblue shadow-xl '>
-          {SORT_LIST.map((item, idx) => (
+          {sortItems.map((item, idx) => (
             <Listbox.Option
               key={idx}
               value={item}
@@ -233,12 +214,12 @@ const FilterRadios = ({
   selectedValue,
   setSelectedValue
 }: {
-  selectedValue: string;
-  setSelectedValue: (val: string) => void;
+  selectedValue: FilterValues;
+  setSelectedValue: (val: FilterValues) => void;
 }) => {
   return (
     <fieldset className='flex flex-wrap gap-4 '>
-      {CATEGORIES.map((c, idx) => (
+      {filterCategories.map((c, idx) => (
         <div key={idx} className='relative'>
           <input
             type='radio'
@@ -255,7 +236,7 @@ const FilterRadios = ({
             htmlFor={c}
             className='rounded-md bg-gray px-3 py-1 text-2xs font-semibold text-blue  peer-checked:bg-blue peer-checked:text-white peer-hover:bg-[#CFD7FF]  '
           >
-            {c}
+            {c === "UI" || c === "UX" ? c : capitalize(c.toLowerCase())}
           </label>
         </div>
       ))}

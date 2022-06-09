@@ -5,8 +5,8 @@ import { z } from "zod";
 import db from "@/db";
 import { Category, Prisma, Status } from "@prisma/client";
 
-const CategoryEnum = z.nativeEnum(Category).or(z.literal("ALL"));
-export type EnumCategory = z.infer<typeof CategoryEnum>;
+const sortItems = z.enum(["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"]);
+const filterCategories = z.nativeEnum(Category).or(z.literal("ALL"));
 
 const roadmapStatus = ["IN_PROGRESS", "LIVE", "PLANNED"] as const;
 
@@ -33,7 +33,7 @@ export const appRouter = trpc
   .router()
   .transformer(superjson)
   .query("feedback", {
-    input: z.object({ sort: z.string(), filter: CategoryEnum }),
+    input: z.object({ sort: sortItems, filter: filterCategories }),
     async resolve({ input }) {
       const feedbacks = await db.feedback.findMany({
         ...feedbackWithCounts,
