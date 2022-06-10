@@ -19,13 +19,13 @@ import { trpc } from "../utils/trpc";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
 const filterCategories = ["ALL", ...Object.values(Category)] as const;
-type FilterValues = InferQueryInput<"feedback">["filter"];
-type SortValues = InferQueryInput<"feedback">["sort"];
+type FilterValues = InferQueryInput<"feedback.all">["filter"];
+type SortValues = InferQueryInput<"feedback.all">["sort"];
 
 function Home() {
   const [filterValue, setFilterValue] = useState<FilterValues>(filterCategories[0]);
   const [sortValue, setSortValue] = useState<SortValues>(sortItems[0]);
-  const { data, isLoading } = trpc.useQuery(["feedback", { sort: sortValue, filter: filterValue }]);
+  const { data, isLoading } = trpc.useQuery(["feedback.all", { sort: sortValue, filter: filterValue }]);
   const selectFilter = (val: FilterValues) => setFilterValue(val);
 
   return (

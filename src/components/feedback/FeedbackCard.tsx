@@ -4,7 +4,7 @@ import Link from "next/link";
 import { capitalize } from "utils/display";
 
 type FeedbackCard = {
-  feedback: InferQueryOutput<"feedback">["feedbacks"][number];
+  feedback: InferQueryOutput<"feedback.all">["feedbacks"][number];
 };
 export function FeedbackCard({ feedback }: FeedbackCard) {
   return (
@@ -23,7 +23,7 @@ export function FeedbackCard({ feedback }: FeedbackCard) {
           {capitalize(feedback.category.toLowerCase())}
         </span>
       </div>
-      <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:flex-col '>
+      <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1  md:flex-col md:self-start md:p-2 '>
         <ArrowUpIcon /> {feedback.upvotesCount}
       </button>
       <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end md:order-3 '>
