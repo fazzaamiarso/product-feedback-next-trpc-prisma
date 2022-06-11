@@ -1,3 +1,4 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
@@ -5,14 +6,15 @@ module.exports = {
       white: "#FFFFFF",
       purple: "#AD1FEA",
       blue: "#4661E6",
-      darkerblue: "#4661E6",
-      darkblue: "#3A4374",
+      darkerblue: "#3A4374",
+      darkblue: "#4661E6",
       cyan: "#62BCFA",
       salmon: "#F49F85",
       darkgray: "#647196",
       gray: "#F2F4FF",
-      lightgray: "#F7F8FD",
+      lightgray: "#F7F8FD"
     },
+
     fontSize: {
       "2xl": ["24px", { lineHeight: "35px", letterSpacing: "-0.33" }],
       xl: ["20px", { lineHeight: "29px", letterSpacing: "-0.25" }],
@@ -20,17 +22,17 @@ module.exports = {
       normal: ["16px", { lineHeight: "23px" }],
       sm: ["15px", { lineHeight: "22px" }],
       xs: ["14px", { lineHeight: "20px", letterSpacing: "-0.2" }],
-      "2xs": ["13px", { lineHeight: "19px" }],
+      "2xs": ["13px", { lineHeight: "19px" }]
     },
     fontFamily: {
-      jost: ["Jost", "sans-serif"],
+      jost: ["Jost", "sans-serif"]
     },
     fontWeight: {
       bold: 700,
       semibold: 600,
-      normal: 400,
+      normal: 400
     },
-    extend: {},
+    extend: {}
   },
   plugins: [require("@tailwindcss/forms")],
   //enables chrome devTools color picker
@@ -40,7 +42,7 @@ module.exports = {
     borderOpacity: false,
     divideOpacity: false,
     placeholderOpacity: false,
-    ringOpacity: false,
+    ringOpacity: false
   },
-  important: true,
+  important: true
 };

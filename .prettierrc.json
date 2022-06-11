@@ -1,4 +1,6 @@
 {
   "bracketSpacing": true,
-  "jsxSingleQuote": true
+  "jsxSingleQuote": true,
+  "printWidth": 100,
+  "trailingComma": "none"
 }
