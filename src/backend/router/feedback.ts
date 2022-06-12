@@ -129,4 +129,18 @@ export const feedbackRouter = createRouter
       };
       return { feedback, interactions: feedbackInteractions };
     }
+  })
+  .mutation("new", {
+    input: z.object({
+      userId: z.string(),
+      title: z.string(),
+      category: z.nativeEnum(Category),
+      description: z.string()
+    }),
+    async resolve({ input }) {
+      const createdFeedback = db.feedback.create({
+        data: input
+      });
+      return createdFeedback;
+    }
   });

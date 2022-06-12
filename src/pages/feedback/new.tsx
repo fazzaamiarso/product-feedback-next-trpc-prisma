@@ -4,10 +4,18 @@ import {} from "@headlessui/react";
 import { Category } from "@prisma/client";
 import { ReactNode } from "react";
 import { useRouter } from "next/router";
+import { trpc } from "utils/trpc";
 
 const categories = Object.values(Category);
 
 const NewFeedback = () => {
+  const utils = trpc.useContext();
+  const mutation = trpc.useMutation("feedback.new", {
+    onSuccess() {
+      utils.invalidateQueries("feedback.all");
+      router.push("/");
+    }
+  });
   const router = useRouter();
   const goBack = () => router.back();
   return (
@@ -19,8 +27,16 @@ const NewFeedback = () => {
         className='relative mx-auto mt-16 w-10/12 space-y-6 rounded-md bg-white p-6 pt-8'
         onSubmit={(e) => {
           e.preventDefault();
-          const data = new FormData(e.currentTarget);
-          console.log(Object.fromEntries(data));
+          const formData = new FormData(e.currentTarget);
+          const title = formData.get("title") as string;
+          const category = formData.get("category") as Category;
+          const description = formData.get("description") as string;
+          mutation.mutate({
+            userId: "1",
+            title,
+            description,
+            category
+          });
         }}
       >
         <div className='absolute top-0 z-10  -translate-y-1/2'>
@@ -77,7 +93,7 @@ const NewFeedback = () => {
           {({ descriptionId, id }) => (
             <textarea
               id={id}
-              name='detail'
+              name='description'
               aria-describedby={descriptionId}
               required
               className='w-full resize-y  rounded-md bg-lightgray'
