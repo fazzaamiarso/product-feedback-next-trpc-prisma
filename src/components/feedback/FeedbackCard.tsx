@@ -14,7 +14,7 @@ export function FeedbackCard({ feedback }: FeedbackCard) {
     >
       <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
         <h4 className='text-lg font-bold text-darkerblue'>
-          <Link href={`/feedback/${feedback.id}`} prefetch>
+          <Link href={`/feedback/${feedback.id}`}>
             <a className='hover:text-blue'>{feedback.title}</a>
           </Link>
         </h4>

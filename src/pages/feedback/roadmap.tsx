@@ -123,7 +123,7 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
                     {title}
                   </div>
                   <h4 className='text-lg font-bold text-darkerblue'>
-                    <Link href={`/feedback/${item.id}`} prefetch>
+                    <Link href={`/feedback/${item.id}`}>
                       <a className='hover:text-blue'>{item.title}</a>
                     </Link>
                   </h4>
