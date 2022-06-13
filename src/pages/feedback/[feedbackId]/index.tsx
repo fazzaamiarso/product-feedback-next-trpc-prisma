@@ -1,5 +1,5 @@
 import { FeedbackCard } from "components/feedback/FeedbackCard";
-import { ArrowLeftIcon } from "components/Icons";
+import GoBackButton from "components/GoBack";
 import { InferQueryOutput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,28 +22,23 @@ const FeedbackPage = ({ id }: { id: string }) => {
 
   return (
     <>
-      <header className='flex items-center justify-between p-2 '>
-        {" "}
-        <Link href='/'>
-          <a className='flex items-center gap-4'>
-            <ArrowLeftIcon /> Go Back
-          </a>
-        </Link>
+      <header className='mx-auto my-6 flex w-10/12 items-center justify-between'>
+        <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray mt-0' />
         <Link href={`/feedback/${id}/edit`}>
-          <a className='rounded-md bg-blue py-1 px-3 text-white'>Edit Feedback</a>
+          <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
         </Link>
       </header>
-      <main className='mx-auto w-10/12 '>
+      <main className='mx-auto mb-8 w-10/12 space-y-6'>
         {data?.feedback && !isLoading ? (
           <FeedbackCard feedback={data.feedback} key={id} />
         ) : (
           <p>Loading Data...</p>
         )}
-        <section>
-          <h2 className='text-xl font-semibold'>
+        <section className='bg-white p-6'>
+          <h2 className='mb-4 text-xl font-semibold'>
             {data?.feedback?.interactionsCount ?? 0} Comments
           </h2>
-          <ul className='space-y-6 rounded-md bg-white p-8'>
+          <ul className='space-y-6  rounded-md  '>
             {data?.interactions &&
               data.interactions.comments.map((comment) => (
                 <li key={comment.id} className=' space-y-4 bg-white'>
@@ -116,9 +111,9 @@ const NewCommentForm = () => {
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
-      className='flex  flex-col items-start space-y-6 rounded-md bg-white px-8'
+      className='flex  flex-col items-start space-y-6 rounded-md bg-white p-6'
     >
-      <label htmlFor='add-comment' className='font-bold'>
+      <label htmlFor='add-comment' className='text-xl font-bold text-darkerblue'>
         Add Comment
       </label>
       <textarea

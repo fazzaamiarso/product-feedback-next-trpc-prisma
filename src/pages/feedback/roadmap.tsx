@@ -1,5 +1,6 @@
 import { Tab } from "@headlessui/react";
-import { ArrowLeftIcon, ArrowUpIcon, CommentIcon, PlusIcon } from "components/Icons";
+import GoBackButton from "components/GoBack";
+import { ArrowUpIcon, CommentIcon, PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
 import { capitalize } from "utils/display";
@@ -31,11 +32,7 @@ const Roadmaps = () => {
     <>
       <header className='mx-auto flex w-full max-w-5xl items-center bg-darkerblue p-4 lg:mt-12 lg:rounded-md lg:p-6'>
         <div className='flex flex-col items-start text-white'>
-          <Link href='/'>
-            <a className='flex items-center gap-4'>
-              <ArrowLeftIcon /> Go Back
-            </a>
-          </Link>
+          <GoBackButton arrowClassName='stroke-white' textClassName='text-white mt-0' />
           <h1 className='text-2xl font-bold'>Roadmap</h1>
         </div>
         <Link href='/feedback/new'>

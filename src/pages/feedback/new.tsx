@@ -1,10 +1,10 @@
-import { ArrowLeftIcon } from "components/Icons";
 import Image from "next/image";
 import {} from "@headlessui/react";
 import { Category } from "@prisma/client";
-import { ReactNode } from "react";
 import { useRouter } from "next/router";
 import { trpc } from "utils/trpc";
+import InputWrapper from "components/form/InputWrapper";
+import GoBackButton from "components/GoBack";
 
 const categories = Object.values(Category);
 
@@ -12,25 +12,17 @@ const NewFeedback = () => {
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("feedback.new", {
     onSuccess() {
-      // utils.queryClient.invalidateQueries({predicate({queryKey}) {
-      //   const keyName = queryKey[0]
-      //   return typeof(keyName) === "string" && keyName.startsWith("feedback")
-      // }})
       utils.invalidateQueries(["feedback.all"]);
-    },
-    onSettled() {
       router.push("/");
     }
   });
   const router = useRouter();
   const goBack = () => router.back();
   return (
-    <main>
-      <a onClick={goBack}>
-        <ArrowLeftIcon /> Go back
-      </a>
+    <main className='mx-auto w-10/12 max-w-lg'>
+      <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray' />
       <form
-        className='relative mx-auto mt-16 w-10/12 space-y-6 rounded-md bg-white p-6 pt-8'
+        className='relative  mt-16 w-full  space-y-6 rounded-md bg-white p-6 pt-8'
         onSubmit={(e) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
@@ -53,7 +45,7 @@ const NewFeedback = () => {
             height={50}
           />
         </div>
-        <h1 className='text-2xl font-bold'>Create New Feedbak</h1>
+        <h1 className='text-2xl font-bold text-darkerblue'>Create New Feedbak</h1>
 
         <InputWrapper
           id='feedback-title'
@@ -106,17 +98,17 @@ const NewFeedback = () => {
             />
           )}
         </InputWrapper>
-        <div className='flex w-full flex-col gap-4'>
+        <div className='flex w-full flex-col gap-4 pt-4 md:flex-row-reverse md:justify-end'>
           <button
             type='submit'
-            className='w-full rounded-md bg-purple  px-3 py-2 text-xs font-semibold text-white'
+            className=' rounded-md bg-purple  px-3 py-2 text-xs font-semibold text-white'
           >
             Add Feedback
           </button>
           <button
             type='button'
             onClick={goBack}
-            className='w-full rounded-md bg-darkgray px-3  py-2 text-xs font-semibold text-white'
+            className=' rounded-md bg-darkgray px-3  py-2 text-xs font-semibold text-white'
           >
             Cancel
           </button>
@@ -126,21 +118,3 @@ const NewFeedback = () => {
   );
 };
 export default NewFeedback;
-
-type InputWrapperProps = {
-  children: (props: { descriptionId: string; id: string }) => ReactNode;
-  id: string;
-  label: string;
-  description: string;
-};
-const InputWrapper = ({ children, id, label, description }: InputWrapperProps) => {
-  return (
-    <div className='flex w-full flex-col items-start'>
-      <label htmlFor={id}>{label}</label>
-      <p id={`${id}-description`} className='pb-4 text-darkgray'>
-        {description}
-      </p>
-      {children({ descriptionId: `${id}-description`, id })}
-    </div>
-  );
-};

@@ -1,10 +1,10 @@
-import { ArrowLeftIcon } from "components/Icons";
 import Image from "next/image";
 import {} from "@headlessui/react";
 import { Category, Status } from "@prisma/client";
-import { ReactNode } from "react";
 import { useRouter } from "next/router";
 import { trpc } from "utils/trpc";
+import InputWrapper from "components/form/InputWrapper";
+import GoBackButton from "components/GoBack";
 
 const categories = Object.values(Category);
 const statuses = Object.values(Status);
@@ -28,12 +28,10 @@ const EditFeedback = () => {
   });
   const goBack = () => router.back();
   return (
-    <main>
-      <a onClick={goBack}>
-        <ArrowLeftIcon /> Go back
-      </a>
+    <main className='mx-auto mt-8 w-10/12 max-w-lg'>
+      <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray' />
       <form
-        className='relative mx-auto mt-16 w-10/12 space-y-6 rounded-md bg-white p-6 pt-8'
+        className='relative mt-16 w-full space-y-6 rounded-md bg-white p-6 pt-8'
         onSubmit={(e) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
@@ -52,14 +50,13 @@ const EditFeedback = () => {
       >
         <div className='absolute top-0 z-10  -translate-y-1/2'>
           <Image
-            src='/assets/shared/icon-new-feedback.svg'
-            alt='new feedback'
+            src='/assets/shared/icon-edit-feedback.svg'
+            alt='edit feedback'
             width={50}
             height={50}
           />
         </div>
-        <h1 className='text-2xl font-bold'>{`Editing '${data?.feedback?.title}'`}</h1>
-
+        <h1 className='text-2xl font-bold text-darkerblue'>{`Editing '${data?.feedback?.title}'`}</h1>
         <InputWrapper
           id='feedback-title'
           label='Feedback Title'
@@ -131,26 +128,26 @@ const EditFeedback = () => {
             />
           )}
         </InputWrapper>
-        <div className='flex w-full flex-col gap-4'>
+        <div className='flex w-full flex-col gap-4 pt-4 md:flex-row-reverse '>
           <button
             type='submit'
-            className='w-full rounded-md bg-purple  px-3 py-2 text-xs font-semibold text-white'
+            className='rounded-md bg-purple  px-3 py-2 text-xs font-semibold text-white '
           >
             Save Changes
           </button>
           <button
             type='button'
             onClick={goBack}
-            className='w-full rounded-md bg-darkgray px-3  py-2 text-xs font-semibold text-white'
+            className='rounded-md bg-darkgray px-3  py-2 text-xs font-semibold text-white '
           >
             Cancel
           </button>
           <button
             type='button'
             onClick={() => deleteMutation.mutate({ feedbackId: feedbackId as string })}
-            className='w-full rounded-md bg-[#D73737] px-3  py-2 text-xs font-semibold text-white'
+            className='rounded-md bg-[#D73737] px-3  py-2 text-xs font-semibold text-white md:mr-auto '
           >
-            Delete
+            {deleteMutation.isLoading ? "Deleting" : "Delete"}
           </button>
         </div>
       </form>
@@ -158,21 +155,3 @@ const EditFeedback = () => {
   );
 };
 export default EditFeedback;
-
-type InputWrapperProps = {
-  children: (props: { descriptionId: string; id: string }) => ReactNode;
-  id: string;
-  label: string;
-  description: string;
-};
-const InputWrapper = ({ children, id, label, description }: InputWrapperProps) => {
-  return (
-    <div className='flex w-full flex-col items-start'>
-      <label htmlFor={id}>{label}</label>
-      <p id={`${id}-description`} className='pb-4 text-darkgray'>
-        {description}
-      </p>
-      {children({ descriptionId: `${id}-description`, id })}
-    </div>
-  );
-};
