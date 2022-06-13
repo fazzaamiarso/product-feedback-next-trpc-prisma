@@ -143,4 +143,33 @@ export const feedbackRouter = createRouter
       });
       return createdFeedback;
     }
+  })
+  .mutation("edit", {
+    input: z.object({
+      feedbackId: z.string(),
+      title: z.string(),
+      category: z.nativeEnum(Category),
+      status: z.nativeEnum(Status),
+      description: z.string()
+    }),
+    async resolve({ input }) {
+      const updatedFeedback = db.feedback.update({
+        data: {
+          title: input.title,
+          category: input.category,
+          status: input.status,
+          description: input.description
+        },
+        where: { id: input.feedbackId }
+      });
+      return updatedFeedback;
+    }
+  })
+  .mutation("delete", {
+    input: z.object({
+      feedbackId: z.string()
+    }),
+    async resolve({ input }) {
+      return await db.feedback.delete({ where: { id: input.feedbackId } });
+    }
   });

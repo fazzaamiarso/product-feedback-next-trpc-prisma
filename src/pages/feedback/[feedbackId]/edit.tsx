@@ -1,28 +1,31 @@
 import { ArrowLeftIcon } from "components/Icons";
 import Image from "next/image";
 import {} from "@headlessui/react";
-import { Category } from "@prisma/client";
+import { Category, Status } from "@prisma/client";
 import { ReactNode } from "react";
 import { useRouter } from "next/router";
 import { trpc } from "utils/trpc";
 
 const categories = Object.values(Category);
+const statuses = Object.values(Status);
 
-const NewFeedback = () => {
+const EditFeedback = () => {
+  const router = useRouter();
+  const { feedbackId } = router.query;
   const utils = trpc.useContext();
-  const mutation = trpc.useMutation("feedback.new", {
+  const { data } = trpc.useQuery(["feedback.id", { id: feedbackId as string }]);
+  const mutation = trpc.useMutation("feedback.edit", {
+    onSuccess({ id }) {
+      utils.invalidateQueries(["feedback.id"]);
+      router.push(`/feedback/${id}`);
+    }
+  });
+  const deleteMutation = trpc.useMutation("feedback.delete", {
     onSuccess() {
-      // utils.queryClient.invalidateQueries({predicate({queryKey}) {
-      //   const keyName = queryKey[0]
-      //   return typeof(keyName) === "string" && keyName.startsWith("feedback")
-      // }})
       utils.invalidateQueries(["feedback.all"]);
-    },
-    onSettled() {
       router.push("/");
     }
   });
-  const router = useRouter();
   const goBack = () => router.back();
   return (
     <main>
@@ -36,9 +39,11 @@ const NewFeedback = () => {
           const formData = new FormData(e.currentTarget);
           const title = formData.get("title") as string;
           const category = formData.get("category") as Category;
+          const status = formData.get("status") as Status;
           const description = formData.get("description") as string;
           mutation.mutate({
-            userId: "1",
+            feedbackId: feedbackId as string,
+            status,
             title,
             description,
             category
@@ -53,7 +58,7 @@ const NewFeedback = () => {
             height={50}
           />
         </div>
-        <h1 className='text-2xl font-bold'>Create New Feedbak</h1>
+        <h1 className='text-2xl font-bold'>{`Editing '${data?.feedback?.title}'`}</h1>
 
         <InputWrapper
           id='feedback-title'
@@ -67,6 +72,7 @@ const NewFeedback = () => {
               name='title'
               required
               aria-describedby={descriptionId}
+              defaultValue={data?.feedback?.title ?? ""}
               className='w-full rounded-md bg-lightgray'
             />
           )}
@@ -82,10 +88,28 @@ const NewFeedback = () => {
               id={id}
               aria-describedby={descriptionId}
               className='w-full rounded-md bg-lightgray'
+              defaultValue={data?.feedback?.category}
             >
               {categories.map((c, idx) => (
                 <option key={idx} value={c}>
                   {c}
+                </option>
+              ))}
+            </select>
+          )}
+        </InputWrapper>
+        <InputWrapper label='Update Status' id='feedback-status' description='Change feature state'>
+          {({ descriptionId, id }) => (
+            <select
+              name='status'
+              id={id}
+              aria-describedby={descriptionId}
+              className='w-full rounded-md bg-lightgray'
+              defaultValue={data?.feedback?.status}
+            >
+              {statuses.map((s, idx) => (
+                <option key={idx} value={s}>
+                  {s}
                 </option>
               ))}
             </select>
@@ -102,6 +126,7 @@ const NewFeedback = () => {
               name='description'
               aria-describedby={descriptionId}
               required
+              defaultValue={data?.feedback?.description ?? ""}
               className='w-full resize-y  rounded-md bg-lightgray'
             />
           )}
@@ -111,7 +136,7 @@ const NewFeedback = () => {
             type='submit'
             className='w-full rounded-md bg-purple  px-3 py-2 text-xs font-semibold text-white'
           >
-            Add Feedback
+            Save Changes
           </button>
           <button
             type='button'
@@ -120,12 +145,19 @@ const NewFeedback = () => {
           >
             Cancel
           </button>
+          <button
+            type='button'
+            onClick={() => deleteMutation.mutate({ feedbackId: feedbackId as string })}
+            className='w-full rounded-md bg-[#D73737] px-3  py-2 text-xs font-semibold text-white'
+          >
+            Delete
+          </button>
         </div>
       </form>
     </main>
   );
 };
-export default NewFeedback;
+export default EditFeedback;
 
 type InputWrapperProps = {
   children: (props: { descriptionId: string; id: string }) => ReactNode;

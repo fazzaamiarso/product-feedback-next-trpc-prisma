@@ -29,13 +29,13 @@ const FeedbackPage = ({ id }: { id: string }) => {
             <ArrowLeftIcon /> Go Back
           </a>
         </Link>
-        <Link href='#'>
+        <Link href={`/feedback/${id}/edit`}>
           <a className='rounded-md bg-blue py-1 px-3 text-white'>Edit Feedback</a>
         </Link>
       </header>
       <main className='mx-auto w-10/12 '>
         {data?.feedback && !isLoading ? (
-          <FeedbackCard feedback={data.feedback} key={data.feedback.id} />
+          <FeedbackCard feedback={data.feedback} key={id} />
         ) : (
           <p>Loading Data...</p>
         )}
