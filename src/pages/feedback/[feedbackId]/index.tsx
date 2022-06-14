@@ -1,10 +1,11 @@
+import { Reply } from "@prisma/client";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { InferQueryOutput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { trpc } from "utils/trpc";
 
 export default function Feedback() {
@@ -41,76 +42,34 @@ const FeedbackPage = ({ id }: { id: string }) => {
           <ul className='space-y-6  rounded-md  '>
             {data?.interactions &&
               data.interactions.comments.map((comment) => (
-                <li key={comment.id} className=' space-y-4 bg-white'>
-                  <div className='flex items-center gap-4'>
-                    <Image
-                      className='rounded-full'
-                      src={comment.user.avatar ?? ""}
-                      width={35}
-                      alt={comment.user.username}
-                      height={35}
-                    />
-                    <div className='flex flex-col items-start '>
-                      <h3 className='font-bold'>{comment.user.name}</h3>
-                      <h4 className='text-sm text-darkgray'>@{comment.user.username}</h4>
-                    </div>
-                    <button
-                      onClick={() => {}}
-                      className='ml-auto text-xs  font-semibold text-blue hover:underline'
-                    >
-                      Reply
-                    </button>
-                  </div>
-                  <p>{comment.content}</p>
-                  <ul className='space-y-6'>
-                    {comment.replies.map((replies) => (
-                      <li key={replies.id} className=' space-y-4 bg-white pl-6'>
-                        <div className='flex items-center gap-4'>
-                          <Image
-                            className='rounded-full'
-                            src={replies.replyFrom.avatar ?? ""}
-                            width={35}
-                            alt={replies.replyFrom.username}
-                            height={35}
-                          />
-                          <div className='flex flex-col items-start '>
-                            <h3 className='font-bold'>{replies.replyFrom.name}</h3>
-                            <h4 className='text-sm text-darkgray'>@{replies.replyFrom.username}</h4>
-                          </div>
-                          <button
-                            onClick={() => {}}
-                            className='ml-auto text-xs  font-semibold text-blue hover:underline'
-                          >
-                            Reply
-                          </button>
-                        </div>
-                        <p>
-                          <span className='mr-1 font-bold text-purple'>
-                            @{replies.repliedTo.username}
-                          </span>
-                          {replies.content}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+                <CommentCard key={comment.id} comment={comment} />
               ))}
           </ul>
         </section>
-        <NewCommentForm />
+        <NewCommentForm feedbackId={id} />
       </main>
     </>
   );
 };
 
 const MAX_COMMENT_LENGTH = 250;
-const NewCommentForm = () => {
+const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
   const [commentInput, setCommentInput] = useState("");
   const charactersLeft = MAX_COMMENT_LENGTH - commentInput.length;
+  const utils = trpc.useContext();
+  const mutation = trpc.useMutation("comment.new", {
+    onSuccess() {
+      utils.invalidateQueries("feedback.id");
+    }
+  });
 
   return (
     <form
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={(e) => {
+        e.preventDefault();
+        mutation.mutate({ content: commentInput, feedbackId, userId: "1" });
+        setCommentInput("");
+      }}
       className='flex  flex-col items-start space-y-6 rounded-md bg-white p-6'
     >
       <label htmlFor='add-comment' className='text-xl font-bold text-darkerblue'>
@@ -125,7 +84,7 @@ const NewCommentForm = () => {
         onChange={(e) =>
           e.target.value.length > MAX_COMMENT_LENGTH ? null : setCommentInput(e.target.value)
         }
-        className='w-full resize-y rounded-md'
+        className='w-full resize-y rounded-md bg-lightgray'
       />
       <div className='flex w-full items-center justify-between'>
         <span>{charactersLeft} characters left</span>
@@ -137,9 +96,127 @@ const NewCommentForm = () => {
   );
 };
 
-type CommentCardProps = {
-  comments: InferQueryOutput<"feedback.id">["interactions"];
+type InteractionsOutput = InferQueryOutput<"feedback.id">["interactions"];
+type ReplyCardProps = {
+  reply: NonNullable<InteractionsOutput>["comments"][0]["replies"][0];
 };
-const CommentCard = () => {
-  return null;
+const ReplyCard = ({ reply }: ReplyCardProps) => {
+  const [isReplying, setIsReplying] = useState(false);
+  return (
+    <li className=' space-y-4 bg-white pl-6'>
+      <div className='flex items-center gap-4'>
+        <Image
+          className='rounded-full'
+          src={reply.replyFrom.avatar ?? ""}
+          width={35}
+          alt={reply.replyFrom.username}
+          height={35}
+        />
+        <div className='flex flex-col items-start '>
+          <h3 className='font-bold'>{reply.replyFrom.name}</h3>
+          <h4 className='text-sm text-darkgray'>@{reply.replyFrom.username}</h4>
+        </div>
+        <button
+          onClick={() => setIsReplying((prev) => !prev)}
+          className='ml-auto text-xs  font-semibold text-blue hover:underline'
+        >
+          Reply
+        </button>
+      </div>
+      <p>
+        <span className='mr-1 font-bold text-purple'>@{reply.repliedTo.username}</span>
+        {reply.content}
+      </p>
+      {isReplying ? (
+        <ReplyForm
+          replyToId={reply.repliedToId}
+          replyFromId={reply.replyFromId}
+          commentId={reply.commentId}
+        />
+      ) : null}
+    </li>
+  );
+};
+
+const ReplyForm = ({
+  replyToId,
+  replyFromId,
+  commentId
+}: {
+  replyToId: string;
+  replyFromId: string;
+  commentId: number;
+}) => {
+  const uid = useId();
+  const utils = trpc.useContext();
+  const mutation = trpc.useMutation("comment.reply", {
+    onSuccess() {
+      utils.invalidateQueries("feedback.id");
+    }
+  });
+  return (
+    <form
+      className='flex w-full items-start gap-4'
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const content = formData.get("content") as string;
+        mutation.mutate({ repliedToId: replyToId, content, replyFromId, commentId });
+      }}
+    >
+      <textarea
+        aria-label='reply'
+        name='content'
+        id={`reply-${uid}`}
+        rows={5}
+        className='w-full resize-y bg-lightgray'
+      />
+      <button
+        type='submit'
+        className='max-w-max whitespace-nowrap rounded-md bg-purple px-5 py-2 text-xs font-semibold text-white'
+      >
+        Post Reply
+      </button>
+    </form>
+  );
+};
+
+type CommentCardProps = {
+  comment: NonNullable<InteractionsOutput>["comments"][number];
+};
+const CommentCard = ({ comment }: CommentCardProps) => {
+  const [isCommenting, setIsCommenting] = useState(false);
+
+  return (
+    <li className=' space-y-4 bg-white'>
+      <div className='flex items-center gap-4'>
+        <Image
+          className='rounded-full'
+          src={comment.user.avatar ?? ""}
+          width={35}
+          alt={comment.user.username}
+          height={35}
+        />
+        <div className='flex flex-col items-start '>
+          <h3 className='font-bold'>{comment.user.name}</h3>
+          <h4 className='text-sm text-darkgray'>@{comment.user.username}</h4>
+        </div>
+        <button
+          onClick={() => setIsCommenting((prev) => !prev)}
+          className='ml-auto text-xs  font-semibold text-blue hover:underline'
+        >
+          Reply
+        </button>
+      </div>
+      <p>{comment.content}</p>
+      <ul className='space-y-6'>
+        {comment.replies.map((reply) => (
+          <ReplyCard key={reply.id} reply={reply} />
+        ))}
+      </ul>
+      {isCommenting ? (
+        <ReplyForm commentId={comment.id} replyFromId='1' replyToId={comment.userId} />
+      ) : null}
+    </li>
+  );
 };

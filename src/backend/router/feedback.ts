@@ -2,6 +2,7 @@ import { createRouter } from "./../create-router";
 import { z } from "zod";
 import db from "@/db";
 import { Category, Prisma, Status } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 const sortItems = z.enum(["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"]);
 const filterCategories = z.nativeEnum(Category).or(z.literal("ALL"));
 const roadmapStatus = ["IN_PROGRESS", "LIVE", "PLANNED"] as const;
@@ -127,6 +128,8 @@ export const feedbackRouter = createRouter
         upvotesCount: fb._count.upvotes,
         interactionsCount
       };
+      if (!feedback || !feedbackInteractions)
+        throw Error("Couldn't find what you are looking for!");
       return { feedback, interactions: feedbackInteractions };
     }
   })
