@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { trpc } from "utils/trpc";
 import InputWrapper from "components/form/InputWrapper";
 import GoBackButton from "components/GoBack";
+import InputSelect from "components/form/InputSelect";
 
 const categories = Object.values(Category);
 const statuses = Object.values(Status);
@@ -17,13 +18,13 @@ const EditFeedback = () => {
   const mutation = trpc.useMutation("feedback.edit", {
     onSuccess({ id }) {
       utils.invalidateQueries(["feedback.id"]);
-      router.push(`/feedback/${id}`);
+      router.replace(`/feedback/${id}`);
     }
   });
   const deleteMutation = trpc.useMutation("feedback.delete", {
     onSuccess() {
       utils.invalidateQueries(["feedback.all"]);
-      router.push("/");
+      router.replace("/");
     }
   });
   const goBack = () => router.back();
@@ -80,36 +81,20 @@ const EditFeedback = () => {
           description='Choose a category for your feedback'
         >
           {({ descriptionId, id }) => (
-            <select
+            <InputSelect
+              list={categories}
               name='category'
-              id={id}
-              aria-describedby={descriptionId}
-              className='w-full rounded-md bg-lightgray'
-              defaultValue={data?.feedback?.category}
-            >
-              {categories.map((c, idx) => (
-                <option key={idx} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+              initialValue={data?.feedback?.category ?? undefined}
+            />
           )}
         </InputWrapper>
         <InputWrapper label='Update Status' id='feedback-status' description='Change feature state'>
           {({ descriptionId, id }) => (
-            <select
+            <InputSelect
+              list={statuses}
               name='status'
-              id={id}
-              aria-describedby={descriptionId}
-              className='w-full rounded-md bg-lightgray'
-              defaultValue={data?.feedback?.status}
-            >
-              {statuses.map((s, idx) => (
-                <option key={idx} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              initialValue={data?.feedback?.status ?? undefined}
+            />
           )}
         </InputWrapper>
         <InputWrapper

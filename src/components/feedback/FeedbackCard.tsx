@@ -2,7 +2,7 @@ import { Upvote } from "@prisma/client";
 import { ArrowUpIcon, CommentIcon } from "components/Icons";
 import { InferQueryOutput } from "lib/trpc";
 import Link from "next/link";
-import { capitalize } from "utils/display";
+import { capitalize, formatEnum } from "utils/display";
 import mergeClassNames from "utils/mergeClassNames";
 import { trpc } from "utils/trpc";
 
@@ -37,7 +37,7 @@ export function FeedbackCard({ feedback }: FeedbackCard) {
         </h4>
         <p className='text-sm text-darkgray'>{feedback.description}</p>
         <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
-          {capitalize(feedback.category.toLowerCase())}
+          {formatEnum(feedback.category)}
         </span>
       </div>
       <button

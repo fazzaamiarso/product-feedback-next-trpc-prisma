@@ -1,10 +1,10 @@
 import Image from "next/image";
-import {} from "@headlessui/react";
 import { Category } from "@prisma/client";
 import { useRouter } from "next/router";
 import { trpc } from "utils/trpc";
 import InputWrapper from "components/form/InputWrapper";
 import GoBackButton from "components/GoBack";
+import InputSelect from "components/form/InputSelect";
 
 const categories = Object.values(Category);
 
@@ -68,20 +68,7 @@ const NewFeedback = () => {
           id='feedback-category'
           description='Choose a category for your feedback'
         >
-          {({ descriptionId, id }) => (
-            <select
-              name='category'
-              id={id}
-              aria-describedby={descriptionId}
-              className='w-full rounded-md bg-lightgray'
-            >
-              {categories.map((c, idx) => (
-                <option key={idx} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          )}
+          {({ descriptionId, id }) => <InputSelect list={categories} name='category' />}
         </InputWrapper>
         <InputWrapper
           label='Feedback Detail'

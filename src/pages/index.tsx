@@ -14,7 +14,7 @@ import { InferQueryInput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, ReactNode, useState } from "react";
-import { capitalize } from "utils/display";
+import { capitalize, formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
@@ -25,7 +25,10 @@ type SortValues = InferQueryInput<"feedback.all">["sort"];
 function Home() {
   const [filterValue, setFilterValue] = useState<FilterValues>(filterCategories[0]);
   const [sortValue, setSortValue] = useState<SortValues>(sortItems[0]);
-  const { data, isLoading } = trpc.useQuery(["feedback.all", { sort: sortValue, filter: filterValue }]);
+  const { data, isLoading } = trpc.useQuery([
+    "feedback.all",
+    { sort: sortValue, filter: filterValue }
+  ]);
   const selectFilter = (val: FilterValues) => setFilterValue(val);
 
   return (
@@ -219,24 +222,24 @@ const FilterRadios = ({
 }) => {
   return (
     <fieldset className='flex flex-wrap gap-4 '>
-      {filterCategories.map((c, idx) => (
+      {filterCategories.map((category, idx) => (
         <div key={idx} className='relative'>
           <input
             type='radio'
-            id={c}
+            id={category}
             name='category'
-            value={c}
+            value={category}
             className='peer absolute left-0 z-10 h-full w-full cursor-pointer rounded-none opacity-0 checked:pointer-events-none '
-            checked={selectedValue === c}
+            checked={selectedValue === category}
             onChange={() => {
-              setSelectedValue(c);
+              setSelectedValue(category);
             }}
           />
           <label
-            htmlFor={c}
+            htmlFor={category}
             className='rounded-md bg-gray px-3 py-1 text-2xs font-semibold text-blue  peer-checked:bg-blue peer-checked:text-white peer-hover:bg-[#CFD7FF]  '
           >
-            {c === "UI" || c === "UX" ? c : capitalize(c.toLowerCase())}
+            {formatEnum(category)}
           </label>
         </div>
       ))}
@@ -268,7 +271,7 @@ const Roadmap = () => {
           </li>
           <li className='flex items-center gap-4'>
             <div className='aspect-square w-2 rounded-full bg-purple' />
-            In-progress{" "}
+            In-Progress{" "}
             <span className='ml-auto font-semibold text-darkgray'>
               {data?.roadmapItems.IN_PROGRESS ?? 0}
             </span>
