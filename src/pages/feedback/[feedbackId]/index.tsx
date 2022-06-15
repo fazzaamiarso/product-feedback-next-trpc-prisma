@@ -1,4 +1,3 @@
-import { Reply } from "@prisma/client";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { InferQueryOutput } from "lib/trpc";
@@ -156,7 +155,7 @@ const ReplyForm = ({
   });
   return (
     <form
-      className='flex w-full items-start gap-4'
+      className='flex w-full flex-col  items-end gap-4 md:flex-row'
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -169,6 +168,7 @@ const ReplyForm = ({
         name='content'
         id={`reply-${uid}`}
         rows={5}
+        required
         className='w-full resize-y bg-lightgray'
       />
       <button
