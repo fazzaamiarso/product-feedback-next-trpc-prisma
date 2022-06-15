@@ -1,3 +1,4 @@
+import { Button } from "components/Button";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { InferQueryOutput } from "lib/trpc";
@@ -87,9 +88,9 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
       />
       <div className='flex w-full items-center justify-between'>
         <span>{charactersLeft} characters left</span>
-        <button type='submit' className='rounded-md bg-purple py-1 px-3 text-white'>
+        <Button type='submit' className=' bg-purple '>
           Post Comment
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -171,12 +172,9 @@ const ReplyForm = ({
         required
         className='w-full resize-y bg-lightgray'
       />
-      <button
-        type='submit'
-        className='max-w-max whitespace-nowrap rounded-md bg-purple px-5 py-2 text-xs font-semibold text-white'
-      >
+      <Button type='submit' className='max-w-max whitespace-nowrap  bg-purple px-5 py-2 '>
         Post Reply
-      </button>
+      </Button>
     </form>
   );
 };

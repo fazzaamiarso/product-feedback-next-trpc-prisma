@@ -12,7 +12,7 @@ const InputWrapper = ({ children, id, label, description }: InputWrapperProps) =
       <label htmlFor={id} className='font-bold text-darkerblue'>
         {label}
       </label>
-      <p id={`${id}-description`} className='pb-4 text-darkgray'>
+      <p id={`${id}-description`} className='pb-3 text-darkgray'>
         {description}
       </p>
       {children({ descriptionId: `${id}-description`, id })}

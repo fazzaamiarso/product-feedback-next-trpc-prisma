@@ -6,6 +6,7 @@ import { trpc } from "utils/trpc";
 import InputWrapper from "components/form/InputWrapper";
 import GoBackButton from "components/GoBack";
 import InputSelect from "components/form/InputSelect";
+import { Button } from "components/Button";
 
 const categories = Object.values(Category);
 const statuses = Object.values(Status);
@@ -29,7 +30,7 @@ const EditFeedback = () => {
   });
   const goBack = () => router.back();
   return (
-    <main className='mx-auto mt-8 w-10/12 max-w-lg'>
+    <main className='mx-auto my-12 w-10/12 max-w-lg'>
       <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray' />
       <form
         className='relative mt-16 w-full space-y-6 rounded-md bg-white p-6 pt-8'
@@ -57,7 +58,7 @@ const EditFeedback = () => {
             height={50}
           />
         </div>
-        <h1 className='text-2xl font-bold text-darkerblue'>{`Editing '${data?.feedback?.title}'`}</h1>
+        <h1 className='text-2xl font-bold'>{`Editing '${data?.feedback?.title}'`}</h1>
         <InputWrapper
           id='feedback-title'
           label='Feedback Title'
@@ -71,7 +72,7 @@ const EditFeedback = () => {
               required
               aria-describedby={descriptionId}
               defaultValue={data?.feedback?.title ?? ""}
-              className='w-full rounded-md bg-lightgray'
+              className='w-full rounded-md  bg-lightgray '
             />
           )}
         </InputWrapper>
@@ -109,31 +110,21 @@ const EditFeedback = () => {
               aria-describedby={descriptionId}
               required
               defaultValue={data?.feedback?.description ?? ""}
-              className='w-full resize-y  rounded-md bg-lightgray'
+              className='w-full resize-y  rounded-md '
             />
           )}
         </InputWrapper>
         <div className='flex w-full flex-col gap-4 pt-4 md:flex-row-reverse '>
-          <button
-            type='submit'
-            className='rounded-md bg-purple  px-3 py-2 text-xs font-semibold text-white '
-          >
-            Save Changes
-          </button>
-          <button
-            type='button'
-            onClick={goBack}
-            className='rounded-md bg-darkgray px-3  py-2 text-xs font-semibold text-white '
-          >
+          <Button className=' bg-purple   '>Save Changes</Button>
+          <Button onClick={goBack} className=' bg-darkgray  '>
             Cancel
-          </button>
-          <button
-            type='button'
+          </Button>
+          <Button
             onClick={() => deleteMutation.mutate({ feedbackId: feedbackId as string })}
-            className='rounded-md bg-[#D73737] px-3  py-2 text-xs font-semibold text-white md:mr-auto '
+            className=' bg-[#D73737]  md:mr-auto '
           >
             {deleteMutation.isLoading ? "Deleting" : "Delete"}
-          </button>
+          </Button>
         </div>
       </form>
     </main>

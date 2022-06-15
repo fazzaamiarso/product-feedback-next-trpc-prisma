@@ -1,5 +1,6 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Category } from "@prisma/client";
+import { Button } from "components/Button";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import {
   ArrowDownIcon,
@@ -151,10 +152,10 @@ const EmptyBoard = () => {
         Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
         improve our app.
       </p>
-      <button className='mt-6 flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
+      <Button className='mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs'>
         <PlusIcon />
         Add Feedback
-      </button>
+      </Button>
     </div>
   );
 };

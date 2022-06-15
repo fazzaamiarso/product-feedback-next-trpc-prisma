@@ -18,8 +18,8 @@ const InputSelect = ({ list, name, initialValue }: InputSelectProps) => {
   });
   return (
     <Listbox value={selectedValue} onChange={setSelectedValue} name={name}>
-      <div className='relative w-full'>
-        <Listbox.Button className='relative  w-full gap-2 rounded-md bg-lightgray py-3 px-4  '>
+      <div className='group relative w-full'>
+        <Listbox.Button className='relative  w-full gap-2 rounded-md bg-lightgray py-3 px-4 group-focus-within:ring-1 group-focus-within:ring-blue   '>
           {({ open }) => (
             <span className='flex w-full items-center justify-between gap-1  text-darkerblue'>
               {formatEnum(selectedValue)}
