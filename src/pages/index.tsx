@@ -73,7 +73,7 @@ function Home() {
       <main className='mx-auto  flex w-full flex-col items-center md:w-11/12'>
         <div className=' flex w-full items-center bg-darkerblue px-4 py-4 md:rounded-md'>
           <div className='mr-8 hidden items-center gap-2 font-bold text-white md:flex'>
-            <BadgeIcon /> {data?.feedbacks.length} Suggestions
+            <BadgeIcon /> {data?.feedbacks.length ?? 0} Suggestions
           </div>
           <SortListbox selectedValue={sortValue} setSelectedValue={setSortValue} />
           <Link href='/feedback/new'>
@@ -156,7 +156,7 @@ const EmptyBoard = () => {
         height={200}
       />
       <p className='text-2xl font-bold text-darkerblue'>There is no feedback yet.</p>
-      <p className='text-normal text-darkgray'>
+      <p className='max-w-[45ch] text-normal text-darkgray'>
         Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
         improve our app.
       </p>
@@ -279,33 +279,29 @@ const Roadmap = () => {
           <a className='text-blue underline hover:no-underline'>View</a>
         </Link>
       </div>
-      {isLoading ? (
-        <p>Loading roadmap..</p>
-      ) : (
-        <ul className='flex flex-col gap-2'>
-          <li className='flex items-center gap-4'>
-            <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
-            Planned{" "}
-            <span className='ml-auto font-semibold text-darkgray'>
-              {data?.roadmapItems.PLANNED ?? 0}
-            </span>
-          </li>
-          <li className='flex items-center gap-4'>
-            <div className='aspect-square w-2 rounded-full bg-purple' />
-            In-Progress{" "}
-            <span className='ml-auto font-semibold text-darkgray'>
-              {data?.roadmapItems.IN_PROGRESS ?? 0}
-            </span>
-          </li>
-          <li className='flex items-center gap-4'>
-            <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
-            Live{" "}
-            <span className='ml-auto font-semibold text-darkgray'>
-              {data?.roadmapItems.LIVE ?? 0}
-            </span>
-          </li>
-        </ul>
-      )}
+      <ul className='flex flex-col gap-2'>
+        <li className='flex items-center gap-4'>
+          <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
+          Planned{" "}
+          <span className='ml-auto font-semibold text-darkgray'>
+            {data?.roadmapItems.PLANNED ?? 0}
+          </span>
+        </li>
+        <li className='flex items-center gap-4'>
+          <div className='aspect-square w-2 rounded-full bg-purple' />
+          In-Progress{" "}
+          <span className='ml-auto font-semibold text-darkgray'>
+            {data?.roadmapItems.IN_PROGRESS ?? 0}
+          </span>
+        </li>
+        <li className='flex items-center gap-4'>
+          <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
+          Live{" "}
+          <span className='ml-auto font-semibold text-darkgray'>
+            {data?.roadmapItems.LIVE ?? 0}
+          </span>
+        </li>
+      </ul>
     </div>
   );
 };
