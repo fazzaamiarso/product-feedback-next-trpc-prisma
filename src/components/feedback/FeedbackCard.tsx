@@ -12,8 +12,9 @@ const findUpvote = (upvotesArr: Upvote[], userId: string) => {
 
 type FeedbackCard = {
   feedback: InferQueryOutput<"feedback.all">["feedbacks"][number];
+  cardType: "static" | "link";
 };
-export function FeedbackCard({ feedback }: FeedbackCard) {
+export function FeedbackCard({ feedback, cardType }: FeedbackCard) {
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("feedback.upvote", {
     onSuccess() {
@@ -31,9 +32,13 @@ export function FeedbackCard({ feedback }: FeedbackCard) {
     >
       <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
         <h4 className='text-lg font-bold text-darkerblue'>
-          <Link href={`/feedback/${feedback.id}`}>
-            <a className='hover:text-blue'>{feedback.title}</a>
-          </Link>
+          {cardType === "link" ? (
+            <Link href={`/feedback/${feedback.id}`}>
+              <a className='hover:text-blue'>{feedback.title}</a>
+            </Link>
+          ) : (
+            feedback.title
+          )}
         </h4>
         <p className='text-sm text-darkgray'>{feedback.description}</p>
         <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
@@ -44,7 +49,7 @@ export function FeedbackCard({ feedback }: FeedbackCard) {
         type='button'
         onClick={handleUpvote}
         className={mergeClassNames(
-          "col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1  md:flex-col md:self-start md:p-2 ",
+          "col-start-1 flex w-16 items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:w-10 md:flex-col md:self-start md:p-2 ",
           hasUpvoted ? "bg-blue text-white hover:opacity-80" : ""
         )}
       >

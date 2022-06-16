@@ -5,7 +5,7 @@ import { InferQueryOutput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useId, useState } from "react";
+import { SetStateAction, useId, useState } from "react";
 import { trpc } from "utils/trpc";
 
 export default function Feedback() {
@@ -23,23 +23,23 @@ const FeedbackPage = ({ id }: { id: string }) => {
 
   return (
     <>
-      <header className='mx-auto my-6 flex w-10/12 items-center justify-between'>
+      <header className='mx-auto my-6 flex w-10/12 max-w-2xl items-center justify-between'>
         <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray mt-0' />
         <Link href={`/feedback/${id}/edit`}>
           <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
         </Link>
       </header>
-      <main className='mx-auto mb-8 w-10/12 space-y-6'>
+      <main className='mx-auto mb-8 w-10/12 max-w-2xl space-y-6'>
         {data?.feedback && !isLoading ? (
-          <FeedbackCard feedback={data.feedback} key={id} />
+          <FeedbackCard feedback={data.feedback} key={id} cardType='static' />
         ) : (
           <p>Loading Data...</p>
         )}
-        <section className='bg-white p-6'>
+        <section className='rounded-md bg-white p-6'>
           <h2 className='mb-4 text-xl font-semibold'>
             {data?.feedback?.interactionsCount ?? 0} Comments
           </h2>
-          <ul className='space-y-6  rounded-md  '>
+          <ul className=' rounded-md '>
             {data?.interactions &&
               data.interactions.comments.map((comment) => (
                 <CommentCard key={comment.id} comment={comment} />
@@ -96,48 +96,6 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
   );
 };
 
-type InteractionsOutput = InferQueryOutput<"feedback.id">["interactions"];
-type ReplyCardProps = {
-  reply: NonNullable<InteractionsOutput>["comments"][0]["replies"][0];
-};
-const ReplyCard = ({ reply }: ReplyCardProps) => {
-  const [isReplying, setIsReplying] = useState(false);
-  return (
-    <li className=' space-y-4 bg-white pl-6'>
-      <div className='flex items-center gap-4'>
-        <Image
-          className='rounded-full'
-          src={reply.replyFrom.avatar ?? ""}
-          width={35}
-          alt={reply.replyFrom.username}
-          height={35}
-        />
-        <div className='flex flex-col items-start '>
-          <h3 className='font-bold'>{reply.replyFrom.name}</h3>
-          <h4 className='text-sm text-darkgray'>@{reply.replyFrom.username}</h4>
-        </div>
-        <button
-          onClick={() => setIsReplying((prev) => !prev)}
-          className='ml-auto text-xs  font-semibold text-blue hover:underline'
-        >
-          Reply
-        </button>
-      </div>
-      <p>
-        <span className='mr-1 font-bold text-purple'>@{reply.repliedTo.username}</span>
-        {reply.content}
-      </p>
-      {isReplying ? (
-        <ReplyForm
-          replyToId={reply.repliedToId}
-          replyFromId={reply.replyFromId}
-          commentId={reply.commentId}
-        />
-      ) : null}
-    </li>
-  );
-};
-
 const ReplyForm = ({
   replyToId,
   replyFromId,
@@ -156,7 +114,7 @@ const ReplyForm = ({
   });
   return (
     <form
-      className='flex w-full flex-col  items-end gap-4 md:flex-row'
+      className='flex w-full flex-col  items-end gap-4 py-4 md:flex-row md:items-start md:pl-12'
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -186,28 +144,15 @@ const CommentCard = ({ comment }: CommentCardProps) => {
   const [isCommenting, setIsCommenting] = useState(false);
 
   return (
-    <li className=' space-y-4 bg-white'>
-      <div className='flex items-center gap-4'>
-        <Image
-          className='rounded-full'
-          src={comment.user.avatar ?? ""}
-          width={35}
-          alt={comment.user.username}
-          height={35}
-        />
-        <div className='flex flex-col items-start '>
-          <h3 className='font-bold'>{comment.user.name}</h3>
-          <h4 className='text-sm text-darkgray'>@{comment.user.username}</h4>
-        </div>
-        <button
-          onClick={() => setIsCommenting((prev) => !prev)}
-          className='ml-auto text-xs  font-semibold text-blue hover:underline'
-        >
-          Reply
-        </button>
-      </div>
-      <p>{comment.content}</p>
-      <ul className='space-y-6'>
+    <li className=' border-b-[1px] border-b-gray bg-white py-4 last:border-none'>
+      <CardHeader
+        avatar={comment.user.avatar ?? ""}
+        username={comment.user.username}
+        name={comment.user.name}
+        setReplying={setIsCommenting}
+      />
+      <p className='py-4 md:pl-12'>{comment.content}</p>
+      <ul className='relative space-y-6 md:pl-12 '>
         {comment.replies.map((reply) => (
           <ReplyCard key={reply.id} reply={reply} />
         ))}
@@ -216,5 +161,66 @@ const CommentCard = ({ comment }: CommentCardProps) => {
         <ReplyForm commentId={comment.id} replyFromId='1' replyToId={comment.userId} />
       ) : null}
     </li>
+  );
+};
+
+type InteractionsOutput = InferQueryOutput<"feedback.id">["interactions"];
+type ReplyCardProps = {
+  reply: NonNullable<InteractionsOutput>["comments"][0]["replies"][0];
+};
+const ReplyCard = ({ reply }: ReplyCardProps) => {
+  const [isReplying, setIsReplying] = useState(false);
+  return (
+    <li className=' space-y-4 bg-white '>
+      <CardHeader
+        avatar={reply.replyFrom.avatar ?? ""}
+        username={reply.replyFrom.username}
+        name={reply.replyFrom.name}
+        setReplying={setIsReplying}
+      />
+
+      <p>
+        <span className='mr-1 font-bold text-purple'>@{reply.repliedTo.username}</span>
+        {reply.content}
+      </p>
+      {isReplying ? (
+        <ReplyForm
+          replyToId={reply.repliedToId}
+          replyFromId={reply.replyFromId}
+          commentId={reply.commentId}
+        />
+      ) : null}
+    </li>
+  );
+};
+
+type CardHeaderProps = {
+  avatar: string;
+  name: string;
+  username: string;
+  setReplying: (val: SetStateAction<boolean>) => void;
+  avatarSize?: number;
+};
+const CardHeader = ({ avatar, name, username, setReplying, avatarSize = 35 }: CardHeaderProps) => {
+  return (
+    <div className='flex items-center gap-4'>
+      <Image
+        className='rounded-full'
+        src={avatar}
+        alt={username}
+        width={avatarSize}
+        height={avatarSize}
+      />
+      <div className='flex flex-col items-start '>
+        <h3 className='font-bold'>{name}</h3>
+        <h4 className='text-sm text-darkgray'>@{username}</h4>
+      </div>
+      <button
+        onClick={() => setReplying((prev) => !prev)}
+        className='ml-auto text-xs  font-semibold text-blue hover:underline'
+      >
+        Reply
+      </button>
+    </div>
   );
 };

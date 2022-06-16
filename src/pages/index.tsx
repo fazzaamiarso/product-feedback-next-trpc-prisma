@@ -78,7 +78,7 @@ function Home() {
         {data && data.feedbacks.length > 0 ? (
           <ul className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
             {data.feedbacks.map((fb) => {
-              return <FeedbackCard key={fb.id} feedback={fb} />;
+              return <FeedbackCard key={fb.id} feedback={fb} cardType='link' />;
             })}
           </ul>
         ) : isLoading ? (
