@@ -14,8 +14,8 @@ import {
 import { InferQueryInput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, ReactNode, useState } from "react";
-import { capitalize, formatEnum } from "utils/display";
+import { Fragment, ReactNode, SetStateAction, useState } from "react";
+import { formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
@@ -41,12 +41,20 @@ function Home() {
           </h1>
         </div>
         <Drawer>
-          <WidgetCard>
-            <FilterRadios selectedValue={filterValue} setSelectedValue={selectFilter} />
-          </WidgetCard>
-          <WidgetCard>
-            <Roadmap />
-          </WidgetCard>
+          {({ setDrawerOpen }) => (
+            <>
+              <WidgetCard>
+                <FilterRadios
+                  selectedValue={filterValue}
+                  setSelectedValue={selectFilter}
+                  setDrawerOpen={setDrawerOpen}
+                />
+              </WidgetCard>
+              <WidgetCard>
+                <Roadmap />
+              </WidgetCard>
+            </>
+          )}
         </Drawer>
       </header>
       <header className='mx-auto  hidden w-11/12 grid-cols-3 grid-rows-1  gap-x-4 py-8 md:grid lg:flex lg:basis-1/3 lg:flex-col lg:justify-start lg:gap-6 lg:py-0 '>
@@ -160,7 +168,12 @@ const EmptyBoard = () => {
   );
 };
 
-function Drawer({ children }: { children: ReactNode }) {
+type DrawerProps = {
+  children:
+    | ReactNode
+    | ((props: { setDrawerOpen: (val: SetStateAction<boolean>) => void }) => ReactNode);
+};
+function Drawer({ children }: DrawerProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -201,7 +214,11 @@ function Drawer({ children }: { children: ReactNode }) {
                   <Dialog.Panel className='pointer-events-auto w-screen max-w-md'>
                     <div className='flex h-full flex-col overflow-y-scroll bg-gray shadow-xl'>
                       <Dialog.Title className='sr-only'>Filter and Roadmap</Dialog.Title>
-                      <div className='space-y-6 pt-28 '>{children}</div>
+                      <div className='space-y-6 pt-28 '>
+                        {typeof children === "function"
+                          ? children({ setDrawerOpen: setOpen })
+                          : children}
+                      </div>
                     </div>
                   </Dialog.Panel>
                 </Transition.Child>
@@ -216,10 +233,12 @@ function Drawer({ children }: { children: ReactNode }) {
 
 const FilterRadios = ({
   selectedValue,
-  setSelectedValue
+  setSelectedValue,
+  setDrawerOpen
 }: {
   selectedValue: FilterValues;
   setSelectedValue: (val: FilterValues) => void;
+  setDrawerOpen?: (val: boolean) => void;
 }) => {
   return (
     <fieldset className='flex flex-wrap gap-4 '>
@@ -234,6 +253,7 @@ const FilterRadios = ({
             checked={selectedValue === category}
             onChange={() => {
               setSelectedValue(category);
+              setDrawerOpen && setDrawerOpen(false);
             }}
           />
           <label
