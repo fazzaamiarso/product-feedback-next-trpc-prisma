@@ -1,9 +1,10 @@
 import { Tab } from "@headlessui/react";
+import UpvoteButton from "components/feedback/UpvoteButton";
 import GoBackButton from "components/GoBack";
-import { ArrowUpIcon, CommentIcon, PlusIcon } from "components/Icons";
+import { CommentIcon, PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
-import { capitalize } from "utils/display";
+import { capitalize, formatEnum } from "utils/display";
 import { trpc } from "utils/trpc";
 
 const ROADMAPS_ITEMS = [
@@ -125,13 +126,17 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
                     </Link>
                   </h4>
                   <p className='text-sm text-darkgray'>{item.description}</p>
-                  <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
-                    {capitalize(item.category.toLowerCase())}
-                  </span>
+                  <div className='mt-2 rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
+                    {formatEnum(item.category)}
+                  </div>
                 </div>
-                <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF]  '>
-                  <ArrowUpIcon /> {item.upvotesCount}
-                </button>
+                <UpvoteButton
+                  upvotes={item.upvotes}
+                  feedbackId={item.id}
+                  upvotesCount={item.upvotesCount}
+                  className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-2 text-2xs font-semibold hover:bg-[#CFD7FF]  '
+                />
+
                 <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end '>
                   <CommentIcon /> {item.interactionsCount}
                 </div>
