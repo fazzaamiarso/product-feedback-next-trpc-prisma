@@ -1,4 +1,3 @@
-import db from "@/db";
 import { createRouter } from "backend/create-router";
 import { z } from "zod";
 
@@ -9,8 +8,8 @@ export const commentRouter = createRouter
       feedbackId: z.string(),
       content: z.string()
     }),
-    async resolve({ input }) {
-      const newComment = await db.comment.create({
+    async resolve({ input, ctx }) {
+      const newComment = await ctx.prisma.comment.create({
         data: input
       });
       return newComment;
@@ -23,8 +22,8 @@ export const commentRouter = createRouter
       repliedToId: z.string(),
       content: z.string()
     }),
-    async resolve({ input }) {
-      const newReply = await db.reply.create({
+    async resolve({ input, ctx }) {
+      const newReply = await ctx.prisma.reply.create({
         data: input
       });
       return newReply;
