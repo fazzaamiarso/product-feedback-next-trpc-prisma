@@ -3,8 +3,40 @@ import type { AppProps } from "next/app";
 import { withTRPC } from "@trpc/next";
 import { AppRouter } from "./api/trpc/[trpc]";
 import superjson from "superjson";
-const MyApp = ({ Component, pageProps }: AppProps) => {
-  return <Component {...pageProps} />;
+import { SessionProvider, signIn, useSession } from "next-auth/react";
+import type { NextPage } from "next";
+import { ReactNode, useEffect } from "react";
+
+type NextPageWithAuthAndLayout = NextPage & {
+  hasAuth?: boolean;
+  getLayout?: (page: React.ReactElement) => React.ReactNode;
+};
+
+type AppPropsWithAuthAndLayout = AppProps & {
+  Component: NextPageWithAuthAndLayout;
+};
+
+const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWithAuthAndLayout) => {
+  const getLayout = Component.getLayout ?? ((page) => page);
+  const page = getLayout(<Component {...pageProps} />);
+  return (
+    <SessionProvider session={session}>
+      {Component.hasAuth ? <Auth>{page}</Auth> : page}
+    </SessionProvider>
+  );
+};
+
+const Auth = ({ children }: { children: ReactNode }) => {
+  const session = useSession();
+  const isAuthenticated = Boolean(session.data?.user);
+
+  useEffect(() => {
+    if (session.status === "loading") return;
+    if (!isAuthenticated) signIn();
+  }, [isAuthenticated, session.status]);
+
+  if (isAuthenticated) return <>{children}</>;
+  return null;
 };
 
 export default withTRPC<AppRouter>({

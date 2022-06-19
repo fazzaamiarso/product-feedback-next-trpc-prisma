@@ -12,6 +12,7 @@ import {
   PlusIcon
 } from "components/Icons";
 import { InferQueryInput } from "lib/trpc";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, ReactNode, SetStateAction, useState } from "react";
@@ -23,7 +24,10 @@ const filterCategories = ["ALL", ...Object.values(Category)] as const;
 type FilterValues = InferQueryInput<"feedback.all">["filter"];
 type SortValues = InferQueryInput<"feedback.all">["sort"];
 
+Home.hasAuth = true;
+
 function Home() {
+  const session = useSession();
   const [filterValue, setFilterValue] = useState<FilterValues>(filterCategories[0]);
   const [sortValue, setSortValue] = useState<SortValues>(sortItems[0]);
   const { data, isLoading } = trpc.useQuery([
@@ -68,6 +72,17 @@ function Home() {
         </WidgetCard>
         <WidgetCard>
           <Roadmap />
+        </WidgetCard>
+        <WidgetCard>
+          <div>
+            <Image
+              src={session.data?.user?.image ?? ""}
+              alt={session.data?.user?.name ?? ""}
+              height={30}
+              width={30}
+            />
+            <p>{session.data?.user?.name}</p>
+          </div>
         </WidgetCard>
       </header>
       <main className='mx-auto  flex w-full flex-col items-center md:w-11/12'>

@@ -4,7 +4,7 @@ import GoBackButton from "components/GoBack";
 import { CommentIcon, PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
-import { capitalize, formatEnum } from "utils/display";
+import { formatEnum } from "utils/display";
 import { trpc } from "utils/trpc";
 
 const ROADMAPS_ITEMS = [
@@ -54,8 +54,8 @@ const Roadmaps = () => {
     </>
   );
 };
-
 export default Roadmaps;
+Roadmaps.hasAuth = true;
 
 const CategoryTabs = () => {
   const { data, isLoading } = trpc.useQuery(["feedback.roadmapCount"]);

@@ -1,12 +1,16 @@
 import { Button } from "components/Button";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
+import { Layout } from "components/Layout";
 import { InferQueryOutput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { SetStateAction, useId, useState } from "react";
+import { ReactElement, SetStateAction, useId, useState } from "react";
 import { trpc } from "utils/trpc";
+
+Feedback.getLayout = (page: ReactElement) => <Layout>{page}</Layout>;
+Feedback.hasAuth = true;
 
 export default function Feedback() {
   const router = useRouter();
@@ -146,9 +150,9 @@ const CommentCard = ({ comment }: CommentCardProps) => {
   return (
     <li className=' border-b-[1px] border-b-gray bg-white py-4 last:border-none'>
       <CardHeader
-        avatar={comment.user.avatar ?? ""}
+        avatar={comment.user.image ?? ""}
         username={comment.user.username}
-        name={comment.user.name}
+        name={comment.user.name ?? ""}
         setReplying={setIsCommenting}
       />
       <p className='py-4 md:pl-12'>{comment.content}</p>
@@ -173,9 +177,9 @@ const ReplyCard = ({ reply }: ReplyCardProps) => {
   return (
     <li className=' space-y-4 bg-white '>
       <CardHeader
-        avatar={reply.replyFrom.avatar ?? ""}
+        avatar={reply.replyFrom.image ?? ""}
         username={reply.replyFrom.username}
-        name={reply.replyFrom.name}
+        name={reply.replyFrom.name ?? ""}
         setReplying={setIsReplying}
       />
 

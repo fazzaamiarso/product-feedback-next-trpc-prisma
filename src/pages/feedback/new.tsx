@@ -98,3 +98,4 @@ const NewFeedback = () => {
   );
 };
 export default NewFeedback;
+NewFeedback.hasAuth = true;

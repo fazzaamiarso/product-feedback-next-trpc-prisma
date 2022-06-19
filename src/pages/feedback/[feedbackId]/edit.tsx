@@ -131,3 +131,4 @@ const EditFeedback = () => {
   );
 };
 export default EditFeedback;
+EditFeedback.hasAuth = true;
