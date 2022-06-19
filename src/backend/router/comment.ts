@@ -1,7 +1,7 @@
-import { createRouter } from "backend/create-router";
+import { createProtectedRouter } from "./../create-protected-router";
 import { z } from "zod";
 
-export const commentRouter = createRouter
+export const commentRouter = createProtectedRouter
   .mutation("new", {
     input: z.object({
       userId: z.string(),

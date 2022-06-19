@@ -1,6 +1,6 @@
-import { createRouter } from "backend/create-router";
+import { createProtectedRouter } from "./../create-protected-router";
 
-const userRouter = createRouter.query("details", {
+const userRouter = createProtectedRouter.query("details", {
   async resolve() {
     return null;
   }

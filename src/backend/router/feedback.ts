@@ -1,4 +1,4 @@
-import { createRouter } from "./../create-router";
+import { createProtectedRouter } from "./../create-protected-router";
 import { z } from "zod";
 import { Category, Prisma, Status } from "@prisma/client";
 const sortItems = z.enum(["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"]);
@@ -28,7 +28,7 @@ const countFeedbackInteractions = (comments: FeedbackWithCounts["comments"]) => 
   return comments.reduce((total, curr) => total + curr._count.replies + 1, 0);
 };
 
-export const feedbackRouter = createRouter
+export const feedbackRouter = createProtectedRouter
   .query("all", {
     input: z.object({ sort: sortItems, filter: filterCategories }),
 
