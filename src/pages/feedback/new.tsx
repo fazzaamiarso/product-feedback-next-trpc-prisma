@@ -31,7 +31,6 @@ const NewFeedback = () => {
           const category = formData.get("category") as Category;
           const description = formData.get("description") as string;
           mutation.mutate({
-            userId: "1",
             title,
             description,
             category

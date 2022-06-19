@@ -62,16 +62,14 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
   const charactersLeft = MAX_COMMENT_LENGTH - commentInput.length;
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("comment.new", {
-    onSuccess() {
-      utils.invalidateQueries("feedback.id");
-    }
+    onSuccess: () => utils.invalidateQueries("feedback.id")
   });
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        mutation.mutate({ content: commentInput, feedbackId, userId: "1" });
+        mutation.mutate({ content: commentInput, feedbackId });
         setCommentInput("");
       }}
       className='flex  flex-col items-start space-y-6 rounded-md bg-white p-6'
@@ -100,21 +98,11 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
   );
 };
 
-const ReplyForm = ({
-  replyToId,
-  replyFromId,
-  commentId
-}: {
-  replyToId: string;
-  replyFromId: string;
-  commentId: number;
-}) => {
+const ReplyForm = ({ replyToId, commentId }: { replyToId: string; commentId: number }) => {
   const uid = useId();
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("comment.reply", {
-    onSuccess() {
-      utils.invalidateQueries("feedback.id");
-    }
+    onSuccess: () => utils.invalidateQueries("feedback.id")
   });
   return (
     <form
@@ -123,7 +111,7 @@ const ReplyForm = ({
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const content = formData.get("content") as string;
-        mutation.mutate({ repliedToId: replyToId, content, replyFromId, commentId });
+        mutation.mutate({ repliedToId: replyToId, content, commentId });
       }}
     >
       <textarea
@@ -161,9 +149,7 @@ const CommentCard = ({ comment }: CommentCardProps) => {
           <ReplyCard key={reply.id} reply={reply} />
         ))}
       </ul>
-      {isCommenting ? (
-        <ReplyForm commentId={comment.id} replyFromId='1' replyToId={comment.userId} />
-      ) : null}
+      {isCommenting ? <ReplyForm commentId={comment.id} replyToId={comment.userId} /> : null}
     </li>
   );
 };
@@ -187,13 +173,7 @@ const ReplyCard = ({ reply }: ReplyCardProps) => {
         <span className='mr-1 font-bold text-purple'>@{reply.repliedTo.username}</span>
         {reply.content}
       </p>
-      {isReplying ? (
-        <ReplyForm
-          replyToId={reply.repliedToId}
-          replyFromId={reply.replyFromId}
-          commentId={reply.commentId}
-        />
-      ) : null}
+      {isReplying ? <ReplyForm replyToId={reply.repliedToId} commentId={reply.commentId} /> : null}
     </li>
   );
 };

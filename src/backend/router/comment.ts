@@ -4,27 +4,27 @@ import { z } from "zod";
 export const commentRouter = createProtectedRouter
   .mutation("new", {
     input: z.object({
-      userId: z.string(),
       feedbackId: z.string(),
       content: z.string()
     }),
     async resolve({ input, ctx }) {
+      const userId = ctx.session.user.id;
       const newComment = await ctx.prisma.comment.create({
-        data: input
+        data: { ...input, userId }
       });
       return newComment;
     }
   })
   .mutation("reply", {
     input: z.object({
-      replyFromId: z.string(),
       commentId: z.number(),
       repliedToId: z.string(),
       content: z.string()
     }),
     async resolve({ input, ctx }) {
+      const userId = ctx.session.user.id;
       const newReply = await ctx.prisma.reply.create({
-        data: input
+        data: { ...input, replyFromId: userId }
       });
       return newReply;
     }

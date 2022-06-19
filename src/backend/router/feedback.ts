@@ -108,7 +108,7 @@ export const feedbackRouter = createProtectedRouter
     input: z.object({ id: z.string() }),
     async resolve({ input, ctx }) {
       const feedbackInteractions = await ctx.prisma.feedback.findUnique({
-        where: { id: input.id },
+        where: input,
         select: {
           comments: {
             include: { replies: { include: { repliedTo: true, replyFrom: true } }, user: true }
@@ -138,14 +138,14 @@ export const feedbackRouter = createProtectedRouter
   })
   .mutation("new", {
     input: z.object({
-      userId: z.string(),
       title: z.string(),
       category: z.nativeEnum(Category),
       description: z.string()
     }),
     async resolve({ input, ctx }) {
-      const createdFeedback = ctx.prisma.feedback.create({
-        data: input
+      const userId = ctx.session.user.id;
+      const createdFeedback = await ctx.prisma.feedback.create({
+        data: { ...input, userId }
       });
       return createdFeedback;
     }
@@ -159,7 +159,7 @@ export const feedbackRouter = createProtectedRouter
       description: z.string()
     }),
     async resolve({ input, ctx }) {
-      const updatedFeedback = ctx.prisma.feedback.update({
+      const updatedFeedback = await ctx.prisma.feedback.update({
         data: {
           title: input.title,
           category: input.category,
@@ -180,13 +180,17 @@ export const feedbackRouter = createProtectedRouter
     }
   })
   .mutation("upvote", {
-    input: z.object({ feedbackId: z.string(), userId: z.string() }),
+    input: z.object({ feedbackId: z.string() }),
     async resolve({ input, ctx }) {
+      const userId = ctx.session.user.id;
+      const data = { feedbackId: input.feedbackId, userId };
       const existingUpvote = await ctx.prisma.upvote.findUnique({
-        where: { userId_feedbackId: input }
+        where: { userId_feedbackId: data }
       });
       if (existingUpvote)
-        return await ctx.prisma.upvote.delete({ where: { userId_feedbackId: input } });
-      return await ctx.prisma.upvote.create({ data: input });
+        return await ctx.prisma.upvote.delete({
+          where: { userId_feedbackId: data }
+        });
+      return await ctx.prisma.upvote.create({ data });
     }
   });
