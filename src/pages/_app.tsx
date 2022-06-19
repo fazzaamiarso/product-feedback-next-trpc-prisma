@@ -29,11 +29,13 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
 const Auth = ({ children }: { children: ReactNode }) => {
   const session = useSession();
   const isAuthenticated = Boolean(session.data?.user);
+  const isUsernameRegistered = Boolean(session.data?.user?.username);
 
   useEffect(() => {
     if (session.status === "loading") return;
-    if (!isAuthenticated) signIn();
-  }, [isAuthenticated, session.status]);
+    if (!isAuthenticated || !isUsernameRegistered)
+      signIn(undefined, { callbackUrl: "/auth/username" });
+  }, [isAuthenticated, session.status, isUsernameRegistered]);
 
   if (isAuthenticated) return <>{children}</>;
   return null;

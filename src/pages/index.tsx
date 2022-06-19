@@ -12,7 +12,7 @@ import {
   PlusIcon
 } from "components/Icons";
 import { InferQueryInput } from "lib/trpc";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, ReactNode, SetStateAction, useState } from "react";
@@ -82,6 +82,9 @@ function Home() {
               width={30}
             />
             <p>{session.data?.user?.name}</p>
+            <Button className='bg-blue' type='button' onClick={() => signOut()}>
+              Logout
+            </Button>
           </div>
         </WidgetCard>
       </header>
