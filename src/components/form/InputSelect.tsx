@@ -6,18 +6,20 @@ import mergeClassNames from "utils/mergeClassNames";
 
 type InputSelectProps = {
   list: string[];
-  name: string;
+  onChange: (val: string) => void;
   initialValue?: string;
 };
-const InputSelect = ({ list, name, initialValue }: InputSelectProps) => {
-  const [selectedValue, setSelectedValue] = useState(() => {
-    if (!initialValue) return list[0];
-    const value = list.find((item) => item === initialValue);
-    if (!value) throw Error(`No Item Matched: ${value}`);
-    return value;
-  });
+function InputSelect({ list, initialValue, onChange }: InputSelectProps) {
+  const [selectedValue, setSelectedValue] = useState(initialValue ?? list[0]);
+
   return (
-    <Listbox value={selectedValue} onChange={setSelectedValue} name={name}>
+    <Listbox
+      value={selectedValue}
+      onChange={(val) => {
+        setSelectedValue(val);
+        onChange(val);
+      }}
+    >
       <div className='group relative w-full'>
         <Listbox.Button className='relative  w-full gap-2 rounded-md bg-lightgray py-3 px-4 group-focus-within:ring-1 group-focus-within:ring-blue   '>
           {({ open }) => (
@@ -50,5 +52,5 @@ const InputSelect = ({ list, name, initialValue }: InputSelectProps) => {
       </div>
     </Listbox>
   );
-};
+}
 export default InputSelect;

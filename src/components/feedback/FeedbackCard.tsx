@@ -34,7 +34,7 @@ export function FeedbackCard({ feedback, cardType }: FeedbackCard) {
         upvotes={feedback.upvotes}
         feedbackId={feedback.id}
         upvotesCount={feedback.upvotesCount}
-        className='col-start-1 flex w-16 items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:w-10 md:flex-col md:self-start md:p-2 '
+        className='col-start-1 flex w-16 items-center gap-2 place-self-center justify-self-start rounded-md  px-4 py-1 text-2xs font-semibold  md:order-1 md:w-10 md:flex-col md:self-start md:p-2 '
       />
       <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end md:order-3 '>
         <CommentIcon /> {feedback.interactionsCount}

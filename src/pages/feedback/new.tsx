@@ -6,10 +6,17 @@ import InputWrapper from "components/form/InputWrapper";
 import GoBackButton from "components/GoBack";
 import InputSelect from "components/form/InputSelect";
 import { Button } from "components/Button";
+import { Controller, useForm } from "react-hook-form";
+import { InferMutationInput } from "lib/trpc";
 
 const categories = Object.values(Category);
-
+type NewFeedbackInput = InferMutationInput<"feedback.new">;
 const NewFeedback = () => {
+  const { handleSubmit, register, control } = useForm<NewFeedbackInput>({
+    defaultValues: {
+      category: categories[0]
+    }
+  });
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("feedback.new", {
     onSuccess() {
@@ -19,23 +26,15 @@ const NewFeedback = () => {
   });
   const router = useRouter();
   const goBack = () => router.back();
+
   return (
     <main className='mx-auto my-12 w-10/12 max-w-lg'>
       <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray' />
       <form
         className='relative  mt-16 w-full  space-y-6 rounded-md bg-white p-6 pt-8'
-        onSubmit={(e) => {
-          e.preventDefault();
-          const formData = new FormData(e.currentTarget);
-          const title = formData.get("title") as string;
-          const category = formData.get("category") as Category;
-          const description = formData.get("description") as string;
-          mutation.mutate({
-            title,
-            description,
-            category
-          });
-        }}
+        onSubmit={handleSubmit((data) => {
+          mutation.mutate(data);
+        })}
       >
         <div className='absolute top-0 z-10  -translate-y-1/2'>
           <Image
@@ -53,10 +52,9 @@ const NewFeedback = () => {
         >
           {({ descriptionId, id }) => (
             <input
+              {...register("title", { required: true })}
               type='text'
               id={id}
-              name='title'
-              required
               aria-describedby={descriptionId}
               className='w-full rounded-md  bg-lightgray '
             />
@@ -67,7 +65,19 @@ const NewFeedback = () => {
           id='feedback-category'
           description='Choose a category for your feedback'
         >
-          {({ descriptionId, id }) => <InputSelect list={categories} name='category' />}
+          {({}) => (
+            <Controller
+              control={control}
+              name='category'
+              render={({ field }) => (
+                <InputSelect
+                  list={categories}
+                  initialValue={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          )}
         </InputWrapper>
         <InputWrapper
           label='Feedback Detail'
@@ -76,8 +86,8 @@ const NewFeedback = () => {
         >
           {({ descriptionId, id }) => (
             <textarea
+              {...register("description", { required: true })}
               id={id}
-              name='description'
               aria-describedby={descriptionId}
               required
               className='w-full resize-y  rounded-md  bg-lightgray '

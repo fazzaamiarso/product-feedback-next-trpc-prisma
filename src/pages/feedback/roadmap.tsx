@@ -134,7 +134,7 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
                   upvotes={item.upvotes}
                   feedbackId={item.id}
                   upvotesCount={item.upvotesCount}
-                  className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-2 text-2xs font-semibold hover:bg-[#CFD7FF]  '
+                  className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md  px-4 py-2 text-2xs font-semibold'
                 />
 
                 <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end '>

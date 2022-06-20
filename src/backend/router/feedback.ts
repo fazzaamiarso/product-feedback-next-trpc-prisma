@@ -11,7 +11,8 @@ const baseFeedback = Prisma.validator<Prisma.FeedbackSelect>()({
   description: true,
   category: true,
   status: true,
-  upvotes: true
+  upvotes: true,
+  userId: true
 });
 const feedbackWithCounts = Prisma.validator<Prisma.FeedbackFindManyArgs>()({
   select: {
@@ -122,6 +123,7 @@ export const feedbackRouter = createProtectedRouter
       if (!fb) return {};
       const interactionsCount = countFeedbackInteractions(fb.comments);
       const feedback = {
+        userId: fb.userId,
         status: fb.status,
         category: fb.category,
         description: fb.description,

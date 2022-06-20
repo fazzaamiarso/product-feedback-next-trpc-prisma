@@ -3,6 +3,7 @@ import { FeedbackCard } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { Layout } from "components/Layout";
 import { InferQueryOutput } from "lib/trpc";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -23,15 +24,19 @@ export default function Feedback() {
 }
 
 const FeedbackPage = ({ id }: { id: string }) => {
+  const session = useSession();
   const { data, isLoading } = trpc.useQuery(["feedback.id", { id }]);
+  const isFeedbackAuthor = session.data?.user.id === data?.feedback?.userId;
 
   return (
     <>
       <header className='mx-auto my-6 flex w-10/12 max-w-2xl items-center justify-between'>
         <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray mt-0' />
-        <Link href={`/feedback/${id}/edit`}>
-          <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
-        </Link>
+        {isFeedbackAuthor ? (
+          <Link href={`/feedback/${id}/edit`}>
+            <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
+          </Link>
+        ) : null}
       </header>
       <main className='mx-auto mb-8 w-10/12 max-w-2xl space-y-6'>
         {data?.feedback && !isLoading ? (
