@@ -2,12 +2,13 @@ import { Button } from "components/Button";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { Layout } from "components/Layout";
-import { InferQueryOutput } from "lib/trpc";
+import { InferMutationInput, InferQueryOutput } from "lib/trpc";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, SetStateAction, useId, useState } from "react";
+import { useForm } from "react-hook-form";
 import { trpc } from "utils/trpc";
 
 Feedback.getLayout = (page: ReactElement) => <Layout>{page}</Layout>;
@@ -63,6 +64,7 @@ const FeedbackPage = ({ id }: { id: string }) => {
 
 const MAX_COMMENT_LENGTH = 250;
 const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
+  const {} = useForm;
   const [commentInput, setCommentInput] = useState("");
   const charactersLeft = MAX_COMMENT_LENGTH - commentInput.length;
   const utils = trpc.useContext();
@@ -103,32 +105,41 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
   );
 };
 
-const ReplyForm = ({ replyToId, commentId }: { replyToId: string; commentId: number }) => {
+const ReplyForm = ({
+  replyToId,
+  commentId,
+  onDone
+}: {
+  replyToId: string;
+  commentId: number;
+  onDone?: () => void;
+}) => {
+  const { register, handleSubmit } = useForm<InferMutationInput<"comment.reply">>();
   const uid = useId();
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("comment.reply", {
-    onSuccess: () => utils.invalidateQueries("feedback.id")
+    onSuccess: () => {
+      utils.invalidateQueries("feedback.id");
+      onDone && onDone();
+    }
   });
   return (
     <form
       className='flex w-full flex-col  items-end gap-4 py-4 md:flex-row md:items-start md:pl-12'
-      onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const content = formData.get("content") as string;
-        mutation.mutate({ repliedToId: replyToId, content, commentId });
-      }}
+      onSubmit={handleSubmit(({ content }) =>
+        mutation.mutate({ content, commentId, repliedToId: replyToId })
+      )}
     >
       <textarea
+        {...register("content")}
         aria-label='reply'
-        name='content'
         id={`reply-${uid}`}
         rows={5}
         required
         className='w-full resize-y bg-lightgray'
       />
       <Button type='submit' className='max-w-max whitespace-nowrap  bg-purple px-5 py-2 '>
-        Post Reply
+        {mutation.isLoading ? "Posting" : "Post Reply"}
       </Button>
     </form>
   );
@@ -154,7 +165,13 @@ const CommentCard = ({ comment }: CommentCardProps) => {
           <ReplyCard key={reply.id} reply={reply} />
         ))}
       </ul>
-      {isCommenting ? <ReplyForm commentId={comment.id} replyToId={comment.userId} /> : null}
+      {isCommenting ? (
+        <ReplyForm
+          commentId={comment.id}
+          replyToId={comment.userId}
+          onDone={() => setIsCommenting(false)}
+        />
+      ) : null}
     </li>
   );
 };
@@ -178,7 +195,13 @@ const ReplyCard = ({ reply }: ReplyCardProps) => {
         <span className='mr-1 font-bold text-purple'>@{reply.repliedTo.username}</span>
         {reply.content}
       </p>
-      {isReplying ? <ReplyForm replyToId={reply.repliedToId} commentId={reply.commentId} /> : null}
+      {isReplying ? (
+        <ReplyForm
+          replyToId={reply.repliedToId}
+          commentId={reply.commentId}
+          onDone={() => setIsReplying(false)}
+        />
+      ) : null}
     </li>
   );
 };

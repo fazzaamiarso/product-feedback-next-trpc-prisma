@@ -122,12 +122,14 @@ const EditFeedback = () => {
           )}
         </InputWrapper>
         <div className='flex w-full flex-col gap-4 pt-4 md:flex-row-reverse '>
-          <Button className=' bg-purple   '>Save Changes</Button>
+          <Button className=' bg-purple' type='submit'>
+            Save Changes
+          </Button>
           <Button onClick={goBack} className=' bg-darkgray  '>
             Cancel
           </Button>
           <Button
-            onClick={() => deleteMutation.mutate({ feedbackId: feedbackId as string })}
+            onClick={handleSubmit(({ feedbackId }) => deleteMutation.mutate({ feedbackId }))}
             className=' bg-[#D73737]  md:mr-auto '
           >
             {deleteMutation.isLoading ? "Deleting" : "Delete"}
