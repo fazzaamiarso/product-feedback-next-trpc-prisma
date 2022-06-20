@@ -139,7 +139,7 @@ const CommentCard = ({ comment }: CommentCardProps) => {
     <li className=' border-b-[1px] border-b-gray bg-white py-4 last:border-none'>
       <CardHeader
         avatar={comment.user.image ?? ""}
-        username={comment.user.username}
+        username={comment.user.username ?? ""}
         name={comment.user.name ?? ""}
         setReplying={setIsCommenting}
       />
@@ -164,7 +164,7 @@ const ReplyCard = ({ reply }: ReplyCardProps) => {
     <li className=' space-y-4 bg-white '>
       <CardHeader
         avatar={reply.replyFrom.image ?? ""}
-        username={reply.replyFrom.username}
+        username={reply.replyFrom.username ?? ""}
         name={reply.replyFrom.name ?? ""}
         setReplying={setIsReplying}
       />

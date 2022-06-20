@@ -35,7 +35,7 @@ export const feedbackRouter = createProtectedRouter
     async resolve({ input, ctx }) {
       const feedbacks = await ctx.prisma.feedback.findMany({
         ...feedbackWithCounts,
-        where: { category: input.filter === "ALL" ? undefined : input.filter }
+        where: { category: input.filter === "ALL" ? undefined : input.filter, status: "SUGGESTION" }
       });
 
       if (feedbacks.length === 0) return { feedbacks: [] };

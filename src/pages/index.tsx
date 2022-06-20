@@ -57,6 +57,20 @@ function Home() {
               <WidgetCard>
                 <Roadmap />
               </WidgetCard>
+              <WidgetCard>
+                <div>
+                  <Image
+                    src={session.data?.user?.image ?? ""}
+                    alt={session.data?.user?.name ?? ""}
+                    height={30}
+                    width={30}
+                  />
+                  <p>{session.data?.user?.name}</p>
+                  <Button className='bg-blue' type='button' onClick={() => signOut()}>
+                    Logout
+                  </Button>
+                </div>
+              </WidgetCard>
             </>
           )}
         </Drawer>
