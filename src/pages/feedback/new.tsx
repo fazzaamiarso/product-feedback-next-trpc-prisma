@@ -8,14 +8,23 @@ import InputSelect from "components/form/InputSelect";
 import { Button } from "components/Button";
 import { Controller, useForm } from "react-hook-form";
 import { InferMutationInput } from "lib/trpc";
+import mergeClassNames from "utils/mergeClassNames";
 
 const categories = Object.values(Category);
 type NewFeedbackInput = InferMutationInput<"feedback.new">;
 const NewFeedback = () => {
-  const { handleSubmit, register, control } = useForm<NewFeedbackInput>({
+  const {
+    handleSubmit,
+    register,
+    control,
+    clearErrors,
+    formState: { errors }
+  } = useForm<NewFeedbackInput>({
     defaultValues: {
       category: categories[0]
-    }
+    },
+    reValidateMode: "onSubmit",
+    shouldFocusError: true
   });
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("feedback.new", {
@@ -49,14 +58,21 @@ const NewFeedback = () => {
           id='feedback-title'
           label='Feedback Title'
           description='Add a short, descriptive headline'
+          errorMessage={errors?.title?.message}
         >
           {({ descriptionId, id }) => (
             <input
-              {...register("title", { required: true })}
+              {...register("title", {
+                onChange: () => errors.title && clearErrors("title"),
+                required: "Can't be empty!"
+              })}
               type='text'
               id={id}
               aria-describedby={descriptionId}
-              className='w-full rounded-md  bg-lightgray '
+              className={mergeClassNames(
+                "w-full rounded-md  bg-lightgray",
+                errors.title ? "ring-1 ring-red" : ""
+              )}
             />
           )}
         </InputWrapper>
@@ -64,6 +80,7 @@ const NewFeedback = () => {
           label='Category'
           id='feedback-category'
           description='Choose a category for your feedback'
+          errorMessage={undefined}
         >
           {({}) => (
             <Controller
@@ -83,14 +100,20 @@ const NewFeedback = () => {
           label='Feedback Detail'
           id='feedback-detail'
           description='Include any specific comments on what should be improved, added, etc.'
+          errorMessage={errors?.description?.message}
         >
           {({ descriptionId, id }) => (
             <textarea
-              {...register("description", { required: true })}
+              {...register("description", {
+                onChange: () => errors.description && clearErrors("description"),
+                required: "Can't be empty!"
+              })}
               id={id}
               aria-describedby={descriptionId}
-              required
-              className='w-full resize-y  rounded-md  bg-lightgray '
+              className={mergeClassNames(
+                "w-full rounded-md  bg-lightgray",
+                errors.description ? "ring-1 ring-red" : ""
+              )}
             />
           )}
         </InputWrapper>

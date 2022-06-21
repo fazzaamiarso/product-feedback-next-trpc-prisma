@@ -12,7 +12,8 @@ module.exports = {
       salmon: "#F49F85",
       darkgray: "#647196",
       gray: "#F2F4FF",
-      lightgray: "#F7F8FD"
+      lightgray: "#F7F8FD",
+      red: "#D73737"
     },
 
     fontSize: {

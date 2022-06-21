@@ -64,7 +64,6 @@ const FeedbackPage = ({ id }: { id: string }) => {
 
 const MAX_COMMENT_LENGTH = 250;
 const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
-  const {} = useForm;
   const [commentInput, setCommentInput] = useState("");
   const charactersLeft = MAX_COMMENT_LENGTH - commentInput.length;
   const utils = trpc.useContext();
@@ -90,6 +89,7 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
         rows={5}
         placeholder='Type your comment here'
         value={commentInput}
+        required
         onChange={(e) =>
           e.target.value.length > MAX_COMMENT_LENGTH ? null : setCommentInput(e.target.value)
         }
@@ -126,6 +126,7 @@ const ReplyForm = ({
   return (
     <form
       className='flex w-full flex-col  items-end gap-4 py-4 md:flex-row md:items-start md:pl-12'
+      onBlur={() => onDone && onDone()}
       onSubmit={handleSubmit(({ content }) =>
         mutation.mutate({ content, commentId, repliedToId: replyToId })
       )}

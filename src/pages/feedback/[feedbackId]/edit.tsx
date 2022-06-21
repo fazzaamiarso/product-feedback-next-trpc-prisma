@@ -8,6 +8,7 @@ import InputSelect from "components/form/InputSelect";
 import { Button } from "components/Button";
 import { Controller, useForm } from "react-hook-form";
 import type { InferMutationInput } from "lib/trpc";
+import mergeClassNames from "utils/mergeClassNames";
 
 const categories = Object.values(Category);
 const statuses = Object.values(Status);
@@ -18,14 +19,21 @@ const EditFeedback = () => {
   const { feedbackId } = router.query;
   const utils = trpc.useContext();
   const { data } = trpc.useQuery(["feedback.id", { id: feedbackId as string }]);
-  const { register, handleSubmit, control } = useForm<EditFeedbackInput>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    clearErrors,
+    formState: { errors }
+  } = useForm<EditFeedbackInput>({
     defaultValues: {
       description: data?.feedback?.description ?? "",
       title: data?.feedback?.title ?? "",
       feedbackId: data?.feedback?.id ?? "",
       category: data?.feedback?.category ?? categories[0],
       status: data?.feedback?.status ?? statuses[0]
-    }
+    },
+    shouldFocusError: true
   });
 
   const mutation = trpc.useMutation("feedback.edit", {
@@ -64,15 +72,22 @@ const EditFeedback = () => {
           id='feedback-title'
           label='Feedback Title'
           description='Add a short, descriptive headline'
+          errorMessage={errors?.title?.message}
         >
           {({ descriptionId, id }) => (
             <input
-              {...register("title", { required: true })}
+              {...register("title", {
+                onChange: () => errors.title && clearErrors("title"),
+                required: "Can't be empty!"
+              })}
               type='text'
               id={id}
               aria-describedby={descriptionId}
               defaultValue={data?.feedback?.title ?? ""}
-              className='w-full rounded-md  bg-lightgray '
+              className={mergeClassNames(
+                "w-full rounded-md  bg-lightgray",
+                errors.title ? "ring-1 ring-red" : ""
+              )}
             />
           )}
         </InputWrapper>
@@ -80,6 +95,7 @@ const EditFeedback = () => {
           label='Category'
           id='feedback-category'
           description='Choose a category for your feedback'
+          errorMessage={undefined}
         >
           {({}) => (
             <Controller
@@ -95,7 +111,12 @@ const EditFeedback = () => {
             />
           )}
         </InputWrapper>
-        <InputWrapper label='Update Status' id='feedback-status' description='Change feature state'>
+        <InputWrapper
+          label='Update Status'
+          id='feedback-status'
+          description='Change feature state'
+          errorMessage={undefined}
+        >
           {({}) => (
             <Controller
               control={control}
@@ -110,14 +131,21 @@ const EditFeedback = () => {
           label='Feedback Detail'
           id='feedback-detail'
           description='Include any specific comments on what should be improved, added, etc.'
+          errorMessage={errors?.description?.message}
         >
           {({ descriptionId, id }) => (
             <textarea
-              {...register("description", { required: true })}
+              {...register("description", {
+                onChange: () => errors.description && clearErrors("description"),
+                required: "Can't be empty!"
+              })}
               id={id}
               aria-describedby={descriptionId}
               defaultValue={data?.feedback?.description ?? ""}
-              className='w-full resize-y  rounded-md '
+              className={mergeClassNames(
+                "w-full rounded-md  bg-lightgray",
+                errors.description ? "ring-1 ring-red" : ""
+              )}
             />
           )}
         </InputWrapper>
@@ -130,7 +158,7 @@ const EditFeedback = () => {
           </Button>
           <Button
             onClick={handleSubmit(({ feedbackId }) => deleteMutation.mutate({ feedbackId }))}
-            className=' bg-[#D73737]  md:mr-auto '
+            className='bg-red  md:mr-auto '
           >
             {deleteMutation.isLoading ? "Deleting" : "Delete"}
           </Button>
