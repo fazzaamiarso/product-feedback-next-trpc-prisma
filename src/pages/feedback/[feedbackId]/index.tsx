@@ -8,7 +8,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, SetStateAction, useId, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import mergeClassNames from "utils/mergeClassNames";
 import { trpc } from "utils/trpc";
 
 Feedback.getLayout = (page: ReactElement) => <Layout>{page}</Layout>;
@@ -64,43 +65,62 @@ const FeedbackPage = ({ id }: { id: string }) => {
 
 const MAX_COMMENT_LENGTH = 250;
 const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
-  const [commentInput, setCommentInput] = useState("");
-  const charactersLeft = MAX_COMMENT_LENGTH - commentInput.length;
+  const { control, handleSubmit, clearErrors, reset } = useForm<{ comment: string }>({
+    reValidateMode: "onSubmit"
+  });
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("comment.new", {
-    onSuccess: () => utils.invalidateQueries("feedback.id")
+    onSuccess: () => {
+      utils.invalidateQueries("feedback.id");
+      reset();
+    }
   });
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate({ content: commentInput, feedbackId });
-        setCommentInput("");
-      }}
-      className='flex  flex-col items-start space-y-6 rounded-md bg-white p-6'
+      onSubmit={handleSubmit((data) => mutation.mutate({ feedbackId, content: data.comment }))}
+      className='flex  flex-col items-start rounded-md bg-white p-6'
     >
-      <label htmlFor='add-comment' className='text-xl font-bold text-darkerblue'>
+      <label htmlFor='add-comment' className='mb-4 text-xl font-bold text-darkerblue'>
         Add Comment
       </label>
-      <textarea
+      <Controller
         name='comment'
-        id='add-comment'
-        rows={5}
-        placeholder='Type your comment here'
-        value={commentInput}
-        required
-        onChange={(e) =>
-          e.target.value.length > MAX_COMMENT_LENGTH ? null : setCommentInput(e.target.value)
-        }
-        className='w-full resize-y rounded-md bg-lightgray'
+        control={control}
+        defaultValue=''
+        rules={{ required: "Can't be empty!", maxLength: MAX_COMMENT_LENGTH }}
+        render={({ field, formState: { errors } }) => {
+          const charactersLeft = MAX_COMMENT_LENGTH - field.value.length;
+
+          return (
+            <>
+              <textarea
+                id='add-comment'
+                rows={5}
+                placeholder='Type your comment here'
+                value={field.value}
+                onChange={(e) => {
+                  errors.comment && clearErrors("comment");
+                  e.target.value.length <= MAX_COMMENT_LENGTH && field.onChange(e.target.value);
+                }}
+                className={mergeClassNames(
+                  "w-full bg-lightgray",
+                  errors.comment ? "ring-1 ring-red" : ""
+                )}
+              />
+              {errors.comment ? (
+                <span className='pl-2 pt-1 text-xs text-red'>{errors.comment.message}</span>
+              ) : null}
+              <div className='mt-4 flex w-full items-center justify-between'>
+                <span>{charactersLeft} characters left</span>
+                <Button type='submit' className='bg-purple '>
+                  {mutation.isLoading ? "Posting..." : "Post Comment"}
+                </Button>
+              </div>
+            </>
+          );
+        }}
       />
-      <div className='flex w-full items-center justify-between'>
-        <span>{charactersLeft} characters left</span>
-        <Button type='submit' className=' bg-purple '>
-          Post Comment
-        </Button>
-      </div>
     </form>
   );
 };
