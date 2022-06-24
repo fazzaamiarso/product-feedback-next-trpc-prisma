@@ -1,7 +1,7 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Category } from "@prisma/client";
 import { Button } from "components/Button";
-import { FeedbackCard } from "components/feedback/FeedbackCard";
+import { FeedbackCard, FeedbackSkeleton } from "components/feedback/FeedbackCard";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -123,7 +123,13 @@ function Home() {
             })}
           </ul>
         ) : isLoading ? (
-          <p>Loading.....</p>
+          <div className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+          </div>
         ) : (
           <EmptyBoard />
         )}

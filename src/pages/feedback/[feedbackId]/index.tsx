@@ -1,7 +1,8 @@
 import { Button } from "components/Button";
-import { FeedbackCard } from "components/feedback/FeedbackCard";
+import { FeedbackCard, FeedbackSkeleton } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { Layout } from "components/Layout";
+import { SkeletonElement } from "components/SkeletonElement";
 import { InferMutationInput, InferQueryOutput } from "lib/trpc";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -44,22 +45,51 @@ const FeedbackPage = ({ id }: { id: string }) => {
         {data?.feedback && !isLoading ? (
           <FeedbackCard feedback={data.feedback} key={id} cardType='static' />
         ) : (
-          <p>Loading Data...</p>
+          <FeedbackSkeleton />
         )}
         <section className='rounded-md bg-white p-6'>
-          <h2 className='mb-4 text-xl font-semibold'>
-            {data?.feedback?.interactionsCount ?? 0} Comments
-          </h2>
-          <ul className=' rounded-md '>
-            {data?.interactions &&
-              data.interactions.comments.map((comment) => (
-                <CommentCard key={comment.id} comment={comment} />
-              ))}
-          </ul>
+          {data?.feedback ? (
+            <>
+              <h2 className='mb-4 text-xl font-semibold'>
+                {data.feedback.interactionsCount} Comments
+              </h2>
+              <ul className=' rounded-md '>
+                {data.interactions.comments.map((comment) => (
+                  <CommentCard key={comment.id} comment={comment} />
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
+              <SkeletonElement className='mb-6 h-6 w-1/3 animate-pulse ' />
+              <ul className='space-y-6 rounded-md'>
+                <CommentSkeleton />
+                <CommentSkeleton />
+                <CommentSkeleton />
+              </ul>
+            </>
+          )}
         </section>
         <NewCommentForm feedbackId={id} />
       </main>
     </>
+  );
+};
+
+const CommentSkeleton = () => {
+  return (
+    <div className='w-full animate-pulse bg-white '>
+      <div className='mb-4 flex w-full gap-4'>
+        <SkeletonElement className='h-8 w-8 rounded-full' />
+        <div className='w-full'>
+          <SkeletonElement className='mb-2 w-2/3 ' />
+          <SkeletonElement className='h-3 w-1/3 ' />
+        </div>
+      </div>
+      <SkeletonElement className='mb-2 h-3 w-full' />
+      <SkeletonElement className='mb-2 h-3 w-full' />
+      <SkeletonElement className='h-3 w-10/12 ' />
+    </div>
   );
 };
 
