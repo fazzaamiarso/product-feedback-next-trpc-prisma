@@ -1,8 +1,10 @@
 import { Tab } from "@headlessui/react";
-import { ArrowLeftIcon, ArrowUpIcon, CommentIcon, PlusIcon } from "components/Icons";
+import UpvoteButton from "components/feedback/UpvoteButton";
+import GoBackButton from "components/GoBack";
+import { CommentIcon, PlusIcon } from "components/Icons";
 import Link from "next/link";
 import { Fragment } from "react";
-import { capitalize } from "utils/display";
+import { capitalize, formatEnum } from "utils/display";
 import { trpc } from "utils/trpc";
 
 const ROADMAPS_ITEMS = [
@@ -31,11 +33,7 @@ const Roadmaps = () => {
     <>
       <header className='mx-auto flex w-full max-w-5xl items-center bg-darkerblue p-4 lg:mt-12 lg:rounded-md lg:p-6'>
         <div className='flex flex-col items-start text-white'>
-          <Link href='/'>
-            <a className='flex items-center gap-4'>
-              <ArrowLeftIcon /> Go Back
-            </a>
-          </Link>
+          <GoBackButton arrowClassName='stroke-white' textClassName='text-white mt-0' />
           <h1 className='text-2xl font-bold'>Roadmap</h1>
         </div>
         <Link href='/feedback/new'>
@@ -123,18 +121,22 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
                     {title}
                   </div>
                   <h4 className='text-lg font-bold text-darkerblue'>
-                    <Link href={`/feedback/${item.id}`} prefetch>
+                    <Link href={`/feedback/${item.id}`}>
                       <a className='hover:text-blue'>{item.title}</a>
                     </Link>
                   </h4>
                   <p className='text-sm text-darkgray'>{item.description}</p>
-                  <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
-                    {capitalize(item.category.toLowerCase())}
-                  </span>
+                  <div className='mt-2 rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
+                    {formatEnum(item.category)}
+                  </div>
                 </div>
-                <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF]  '>
-                  <ArrowUpIcon /> {item.upvotesCount}
-                </button>
+                <UpvoteButton
+                  upvotes={item.upvotes}
+                  feedbackId={item.id}
+                  upvotesCount={item.upvotesCount}
+                  className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-2 text-2xs font-semibold hover:bg-[#CFD7FF]  '
+                />
+
                 <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end '>
                   <CommentIcon /> {item.interactionsCount}
                 </div>

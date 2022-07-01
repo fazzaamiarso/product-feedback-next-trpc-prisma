@@ -1,31 +1,41 @@
-import { ArrowUpIcon, CommentIcon } from "components/Icons";
+import { Upvote } from "@prisma/client";
+import { CommentIcon } from "components/Icons";
 import { InferQueryOutput } from "lib/trpc";
 import Link from "next/link";
-import { capitalize } from "utils/display";
+import { formatEnum } from "utils/display";
+import UpvoteButton from "./UpvoteButton";
 
 type FeedbackCard = {
   feedback: InferQueryOutput<"feedback.all">["feedbacks"][number];
+  cardType: "static" | "link";
 };
-export function FeedbackCard({ feedback }: FeedbackCard) {
+export function FeedbackCard({ feedback, cardType }: FeedbackCard) {
   return (
     <li
       key={feedback.id}
-      className='grid-rows-[repeat(2, max-content)] grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white p-6 md:flex md:items-center'
+      className='grid-rows-[repeat(2, max-content)] grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white py-6 px-8 md:flex md:items-center'
     >
       <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
         <h4 className='text-lg font-bold text-darkerblue'>
-          <Link href={`/feedback/${feedback.id}`} prefetch>
-            <a className='hover:text-blue'>{feedback.title}</a>
-          </Link>
+          {cardType === "link" ? (
+            <Link href={`/feedback/${feedback.id}`}>
+              <a className='hover:text-blue'>{feedback.title}</a>
+            </Link>
+          ) : (
+            feedback.title
+          )}
         </h4>
         <p className='text-sm text-darkgray'>{feedback.description}</p>
-        <span className='rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
-          {capitalize(feedback.category.toLowerCase())}
-        </span>
+        <div className='mt-2 rounded-md bg-gray px-4 py-1 text-xs font-semibold  text-blue'>
+          {formatEnum(feedback.category)}
+        </div>
       </div>
-      <button className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1  md:flex-col md:self-start md:p-2 '>
-        <ArrowUpIcon /> {feedback.upvotesCount}
-      </button>
+      <UpvoteButton
+        upvotes={feedback.upvotes}
+        feedbackId={feedback.id}
+        upvotesCount={feedback.upvotesCount}
+        className='col-start-1 flex w-16 items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:w-10 md:flex-col md:self-start md:p-2 '
+      />
       <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end md:order-3 '>
         <CommentIcon /> {feedback.interactionsCount}
       </div>

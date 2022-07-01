@@ -1,5 +1,6 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Category } from "@prisma/client";
+import { Button } from "components/Button";
 import { FeedbackCard } from "components/feedback/FeedbackCard";
 import {
   ArrowDownIcon,
@@ -13,8 +14,8 @@ import {
 import { InferQueryInput } from "lib/trpc";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, ReactNode, useState } from "react";
-import { capitalize } from "utils/display";
+import { Fragment, ReactNode, SetStateAction, useState } from "react";
+import { formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
@@ -25,7 +26,10 @@ type SortValues = InferQueryInput<"feedback.all">["sort"];
 function Home() {
   const [filterValue, setFilterValue] = useState<FilterValues>(filterCategories[0]);
   const [sortValue, setSortValue] = useState<SortValues>(sortItems[0]);
-  const { data, isLoading } = trpc.useQuery(["feedback.all", { sort: sortValue, filter: filterValue }]);
+  const { data, isLoading } = trpc.useQuery([
+    "feedback.all",
+    { sort: sortValue, filter: filterValue }
+  ]);
   const selectFilter = (val: FilterValues) => setFilterValue(val);
 
   return (
@@ -37,12 +41,20 @@ function Home() {
           </h1>
         </div>
         <Drawer>
-          <WidgetCard>
-            <FilterRadios selectedValue={filterValue} setSelectedValue={selectFilter} />
-          </WidgetCard>
-          <WidgetCard>
-            <Roadmap />
-          </WidgetCard>
+          {({ setDrawerOpen }) => (
+            <>
+              <WidgetCard>
+                <FilterRadios
+                  selectedValue={filterValue}
+                  setSelectedValue={selectFilter}
+                  setDrawerOpen={setDrawerOpen}
+                />
+              </WidgetCard>
+              <WidgetCard>
+                <Roadmap />
+              </WidgetCard>
+            </>
+          )}
         </Drawer>
       </header>
       <header className='mx-auto  hidden w-11/12 grid-cols-3 grid-rows-1  gap-x-4 py-8 md:grid lg:flex lg:basis-1/3 lg:flex-col lg:justify-start lg:gap-6 lg:py-0 '>
@@ -61,7 +73,7 @@ function Home() {
       <main className='mx-auto  flex w-full flex-col items-center md:w-11/12'>
         <div className=' flex w-full items-center bg-darkerblue px-4 py-4 md:rounded-md'>
           <div className='mr-8 hidden items-center gap-2 font-bold text-white md:flex'>
-            <BadgeIcon /> {data?.feedbacks.length} Suggestions
+            <BadgeIcon /> {data?.feedbacks.length ?? 0} Suggestions
           </div>
           <SortListbox selectedValue={sortValue} setSelectedValue={setSortValue} />
           <Link href='/feedback/new'>
@@ -74,7 +86,7 @@ function Home() {
         {data && data.feedbacks.length > 0 ? (
           <ul className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
             {data.feedbacks.map((fb) => {
-              return <FeedbackCard key={fb.id} feedback={fb} />;
+              return <FeedbackCard key={fb.id} feedback={fb} cardType='link' />;
             })}
           </ul>
         ) : isLoading ? (
@@ -144,19 +156,24 @@ const EmptyBoard = () => {
         height={200}
       />
       <p className='text-2xl font-bold text-darkerblue'>There is no feedback yet.</p>
-      <p className='text-normal text-darkgray'>
+      <p className='max-w-[45ch] text-normal text-darkgray'>
         Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
         improve our app.
       </p>
-      <button className='mt-6 flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
+      <Button className='mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs'>
         <PlusIcon />
         Add Feedback
-      </button>
+      </Button>
     </div>
   );
 };
 
-function Drawer({ children }: { children: ReactNode }) {
+type DrawerProps = {
+  children:
+    | ReactNode
+    | ((props: { setDrawerOpen: (val: SetStateAction<boolean>) => void }) => ReactNode);
+};
+function Drawer({ children }: DrawerProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -197,7 +214,11 @@ function Drawer({ children }: { children: ReactNode }) {
                   <Dialog.Panel className='pointer-events-auto w-screen max-w-md'>
                     <div className='flex h-full flex-col overflow-y-scroll bg-gray shadow-xl'>
                       <Dialog.Title className='sr-only'>Filter and Roadmap</Dialog.Title>
-                      <div className='space-y-6 pt-28 '>{children}</div>
+                      <div className='space-y-6 pt-28 '>
+                        {typeof children === "function"
+                          ? children({ setDrawerOpen: setOpen })
+                          : children}
+                      </div>
                     </div>
                   </Dialog.Panel>
                 </Transition.Child>
@@ -212,31 +233,34 @@ function Drawer({ children }: { children: ReactNode }) {
 
 const FilterRadios = ({
   selectedValue,
-  setSelectedValue
+  setSelectedValue,
+  setDrawerOpen
 }: {
   selectedValue: FilterValues;
   setSelectedValue: (val: FilterValues) => void;
+  setDrawerOpen?: (val: boolean) => void;
 }) => {
   return (
     <fieldset className='flex flex-wrap gap-4 '>
-      {filterCategories.map((c, idx) => (
+      {filterCategories.map((category, idx) => (
         <div key={idx} className='relative'>
           <input
             type='radio'
-            id={c}
+            id={category}
             name='category'
-            value={c}
+            value={category}
             className='peer absolute left-0 z-10 h-full w-full cursor-pointer rounded-none opacity-0 checked:pointer-events-none '
-            checked={selectedValue === c}
+            checked={selectedValue === category}
             onChange={() => {
-              setSelectedValue(c);
+              setSelectedValue(category);
+              setDrawerOpen && setDrawerOpen(false);
             }}
           />
           <label
-            htmlFor={c}
+            htmlFor={category}
             className='rounded-md bg-gray px-3 py-1 text-2xs font-semibold text-blue  peer-checked:bg-blue peer-checked:text-white peer-hover:bg-[#CFD7FF]  '
           >
-            {c === "UI" || c === "UX" ? c : capitalize(c.toLowerCase())}
+            {formatEnum(category)}
           </label>
         </div>
       ))}
@@ -255,33 +279,29 @@ const Roadmap = () => {
           <a className='text-blue underline hover:no-underline'>View</a>
         </Link>
       </div>
-      {isLoading ? (
-        <p>Loading roadmap..</p>
-      ) : (
-        <ul className='flex flex-col gap-2'>
-          <li className='flex items-center gap-4'>
-            <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
-            Planned{" "}
-            <span className='ml-auto font-semibold text-darkgray'>
-              {data?.roadmapItems.PLANNED ?? 0}
-            </span>
-          </li>
-          <li className='flex items-center gap-4'>
-            <div className='aspect-square w-2 rounded-full bg-purple' />
-            In-progress{" "}
-            <span className='ml-auto font-semibold text-darkgray'>
-              {data?.roadmapItems.IN_PROGRESS ?? 0}
-            </span>
-          </li>
-          <li className='flex items-center gap-4'>
-            <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
-            Live{" "}
-            <span className='ml-auto font-semibold text-darkgray'>
-              {data?.roadmapItems.LIVE ?? 0}
-            </span>
-          </li>
-        </ul>
-      )}
+      <ul className='flex flex-col gap-2'>
+        <li className='flex items-center gap-4'>
+          <div className='aspect-square w-2 rounded-full bg-[#F49F85]' />
+          Planned{" "}
+          <span className='ml-auto font-semibold text-darkgray'>
+            {data?.roadmapItems.PLANNED ?? 0}
+          </span>
+        </li>
+        <li className='flex items-center gap-4'>
+          <div className='aspect-square w-2 rounded-full bg-purple' />
+          In-Progress{" "}
+          <span className='ml-auto font-semibold text-darkgray'>
+            {data?.roadmapItems.IN_PROGRESS ?? 0}
+          </span>
+        </li>
+        <li className='flex items-center gap-4'>
+          <div className='aspect-square w-2 rounded-full bg-[#62BCFA]' />
+          Live{" "}
+          <span className='ml-auto font-semibold text-darkgray'>
+            {data?.roadmapItems.LIVE ?? 0}
+          </span>
+        </li>
+      </ul>
     </div>
   );
 };
