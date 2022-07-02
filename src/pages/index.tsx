@@ -15,10 +15,11 @@ import { InferQueryInput } from "lib/trpc";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, ReactNode, SetStateAction, useCallback, useRef, useState } from "react";
+import { Fragment, ReactNode, SetStateAction, useRef, useState } from "react";
 import { formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
 import debounce from "lodash.debounce";
+import { ButtonLink } from "components/ButtonLink";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
 const filterCategories = ["ALL", ...Object.values(Category)] as const;
@@ -92,11 +93,11 @@ function Home() {
           <div>
             <Image
               src={session.data?.user?.image ?? ""}
-              alt={session.data?.user?.name ?? ""}
+              alt={session.data?.user?.username ?? ""}
               height={30}
               width={30}
             />
-            <p>{session.data?.user?.name}</p>
+            <p>{session.data?.user?.username}</p>
             <Button className='bg-blue' type='button' onClick={() => signOut()}>
               Logout
             </Button>
@@ -199,10 +200,11 @@ const EmptyBoard = () => {
         Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
         improve our app.
       </p>
-      <Button className='mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs'>
-        <PlusIcon />
+      <ButtonLink  href="/feedback/new" className="mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs">
+      <PlusIcon />
         Add Feedback
-      </Button>
+      </ButtonLink>
+      
     </div>
   );
 };
