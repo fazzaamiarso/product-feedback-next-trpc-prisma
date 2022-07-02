@@ -13,7 +13,9 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
         permanent: false
       }
     };
-  return {};
+  return { 
+      props : {}
+  };
 };
 
 export default function Username() {
