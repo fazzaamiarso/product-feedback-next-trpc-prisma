@@ -1,7 +1,6 @@
-import { createRouter } from "./../create-router";
+import { createProtectedRouter } from "./../create-protected-router";
 import { z } from "zod";
-import db from "@/db";
-import { Category, Prisma, Status, Upvote } from "@prisma/client";
+import { Category, Prisma, Status } from "@prisma/client";
 const sortItems = z.enum(["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"]);
 const filterCategories = z.nativeEnum(Category).or(z.literal("ALL"));
 const roadmapStatus = ["IN_PROGRESS", "LIVE", "PLANNED"] as const;
@@ -12,7 +11,8 @@ const baseFeedback = Prisma.validator<Prisma.FeedbackSelect>()({
   description: true,
   category: true,
   status: true,
-  upvotes: true
+  upvotes: true,
+  userId: true
 });
 const feedbackWithCounts = Prisma.validator<Prisma.FeedbackFindManyArgs>()({
   select: {
@@ -29,14 +29,14 @@ const countFeedbackInteractions = (comments: FeedbackWithCounts["comments"]) => 
   return comments.reduce((total, curr) => total + curr._count.replies + 1, 0);
 };
 
-export const feedbackRouter = createRouter
+export const feedbackRouter = createProtectedRouter
   .query("all", {
     input: z.object({ sort: sortItems, filter: filterCategories }),
 
-    async resolve({ input }) {
-      const feedbacks = await db.feedback.findMany({
+    async resolve({ input, ctx }) {
+      const feedbacks = await ctx.prisma.feedback.findMany({
         ...feedbackWithCounts,
-        where: { category: input.filter === "ALL" ? undefined : input.filter }
+        where: { category: input.filter === "ALL" ? undefined : input.filter, status: "SUGGESTION" }
       });
 
       if (feedbacks.length === 0) return { feedbacks: [] };
@@ -68,8 +68,8 @@ export const feedbackRouter = createRouter
     }
   })
   .query("roadmapCount", {
-    async resolve() {
-      const roadmapsFeedback = await db.feedback.groupBy({
+    async resolve({ ctx }) {
+      const roadmapsFeedback = await ctx.prisma.feedback.groupBy({
         by: ["status"],
         where: { status: { in: ["IN_PROGRESS", "LIVE", "PLANNED"] } },
         _count: true
@@ -83,8 +83,8 @@ export const feedbackRouter = createRouter
   })
   .query("roadmap", {
     input: z.enum(roadmapStatus),
-    async resolve({ input }) {
-      const feedbacks = await db.feedback.findMany({
+    async resolve({ input, ctx }) {
+      const feedbacks = await ctx.prisma.feedback.findMany({
         ...feedbackWithCounts,
         where: { status: { equals: input } }
       });
@@ -107,22 +107,23 @@ export const feedbackRouter = createRouter
   })
   .query("id", {
     input: z.object({ id: z.string() }),
-    async resolve({ input }) {
-      const feedbackInteractions = await db.feedback.findUnique({
-        where: { id: input.id },
+    async resolve({ input, ctx }) {
+      const feedbackInteractions = await ctx.prisma.feedback.findUnique({
+        where: input,
         select: {
           comments: {
             include: { replies: { include: { repliedTo: true, replyFrom: true } }, user: true }
           }
         }
       });
-      const fb = await db.feedback.findUnique({
+      const fb = await ctx.prisma.feedback.findUnique({
         ...feedbackWithCounts,
         where: { id: input.id }
       });
       if (!fb) return {};
       const interactionsCount = countFeedbackInteractions(fb.comments);
       const feedback = {
+        userId: fb.userId,
         status: fb.status,
         category: fb.category,
         description: fb.description,
@@ -139,14 +140,14 @@ export const feedbackRouter = createRouter
   })
   .mutation("new", {
     input: z.object({
-      userId: z.string(),
       title: z.string(),
       category: z.nativeEnum(Category),
       description: z.string()
     }),
-    async resolve({ input }) {
-      const createdFeedback = db.feedback.create({
-        data: input
+    async resolve({ input, ctx }) {
+      const userId = ctx.session.user.id;
+      const createdFeedback = await ctx.prisma.feedback.create({
+        data: { ...input, userId }
       });
       return createdFeedback;
     }
@@ -159,8 +160,8 @@ export const feedbackRouter = createRouter
       status: z.nativeEnum(Status),
       description: z.string()
     }),
-    async resolve({ input }) {
-      const updatedFeedback = db.feedback.update({
+    async resolve({ input, ctx }) {
+      const updatedFeedback = await ctx.prisma.feedback.update({
         data: {
           title: input.title,
           category: input.category,
@@ -176,15 +177,22 @@ export const feedbackRouter = createRouter
     input: z.object({
       feedbackId: z.string()
     }),
-    async resolve({ input }) {
-      return await db.feedback.delete({ where: { id: input.feedbackId } });
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.feedback.delete({ where: { id: input.feedbackId } });
     }
   })
   .mutation("upvote", {
-    input: z.object({ feedbackId: z.string(), userId: z.string() }),
-    async resolve({ input }) {
-      const existingUpvote = await db.upvote.findUnique({ where: { userId_feedbackId: input } });
-      if (existingUpvote) return await db.upvote.delete({ where: { userId_feedbackId: input } });
-      return await db.upvote.create({ data: input });
+    input: z.object({ feedbackId: z.string() }),
+    async resolve({ input, ctx }) {
+      const userId = ctx.session.user.id;
+      const data = { feedbackId: input.feedbackId, userId };
+      const existingUpvote = await ctx.prisma.upvote.findUnique({
+        where: { userId_feedbackId: data }
+      });
+      if (existingUpvote)
+        return await ctx.prisma.upvote.delete({
+          where: { userId_feedbackId: data }
+        });
+      return await ctx.prisma.upvote.create({ data });
     }
   });

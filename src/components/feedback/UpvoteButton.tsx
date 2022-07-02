@@ -1,5 +1,6 @@
 import { Upvote } from "@prisma/client";
 import { ArrowUpIcon } from "components/Icons";
+import { useSession } from "next-auth/react";
 import mergeClassNames from "utils/mergeClassNames";
 import { trpc } from "utils/trpc";
 
@@ -15,6 +16,7 @@ type UpvoteButtonProps = {
 };
 
 const UpvoteButton = ({ upvotes, upvotesCount, feedbackId, className }: UpvoteButtonProps) => {
+  const session = useSession();
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("feedback.upvote", {
     onSuccess() {
@@ -22,17 +24,17 @@ const UpvoteButton = ({ upvotes, upvotesCount, feedbackId, className }: UpvoteBu
       utils.invalidateQueries("feedback.id");
     }
   });
-  const handleUpvote = () => mutation.mutate({ feedbackId, userId: "1" });
-  const hasUpvoted = Boolean(findUpvote(upvotes, "1"));
+  const handleUpvote = () => mutation.mutate({ feedbackId });
+  const hasUpvoted = Boolean(findUpvote(upvotes, session.data?.user.id ?? ""));
 
   return (
     <button
       type='button'
       onClick={handleUpvote}
       className={mergeClassNames(
-        "rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] ",
+        "rounded-md  px-4 py-1 text-2xs font-semibold  ",
         className,
-        hasUpvoted ? "bg-blue text-white hover:opacity-80" : ""
+        hasUpvoted ? "bg-blue text-white hover:opacity-80" : "bg-gray hover:bg-[#CFD7FF]"
       )}
     >
       <ArrowUpIcon className={mergeClassNames(hasUpvoted ? "stroke-white" : "stroke-blue")} />

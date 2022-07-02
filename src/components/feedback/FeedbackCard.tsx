@@ -1,5 +1,5 @@
-import { Upvote } from "@prisma/client";
 import { CommentIcon } from "components/Icons";
+import { SkeletonElement } from "components/SkeletonElement";
 import { InferQueryOutput } from "lib/trpc";
 import Link from "next/link";
 import { formatEnum } from "utils/display";
@@ -11,10 +11,7 @@ type FeedbackCard = {
 };
 export function FeedbackCard({ feedback, cardType }: FeedbackCard) {
   return (
-    <li
-      key={feedback.id}
-      className='grid-rows-[repeat(2, max-content)] grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white py-6 px-8 md:flex md:items-center'
-    >
+    <li className='grid-rows-[repeat(2, max-content)] grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white py-6 px-8 md:flex md:items-center'>
       <div className='col-span-2 flex flex-col items-start space-y-2 md:order-2 md:basis-full'>
         <h4 className='text-lg font-bold text-darkerblue'>
           {cardType === "link" ? (
@@ -34,11 +31,25 @@ export function FeedbackCard({ feedback, cardType }: FeedbackCard) {
         upvotes={feedback.upvotes}
         feedbackId={feedback.id}
         upvotesCount={feedback.upvotesCount}
-        className='col-start-1 flex w-16 items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-1 text-2xs font-semibold hover:bg-[#CFD7FF] md:order-1 md:w-10 md:flex-col md:self-start md:p-2 '
+        className='col-start-1 flex w-16 items-center gap-2 place-self-center justify-self-start rounded-md  px-4 py-1 text-2xs font-semibold  md:order-1 md:w-10 md:flex-col md:self-start md:p-2 '
       />
       <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end md:order-3 '>
         <CommentIcon /> {feedback.interactionsCount}
       </div>
     </li>
+  );
+}
+
+export function FeedbackSkeleton() {
+  return (
+    <div className='grid-rows-[repeat(2, max-content)] grid w-full animate-pulse grid-cols-2 place-content-between gap-y-6 gap-x-8  rounded-md bg-white py-6 px-8 md:flex md:items-center'>
+      <div className='col-span-2 flex w-full flex-col items-start space-y-2 md:order-2 md:basis-full'>
+        <SkeletonElement className=' h-6 w-10/12'></SkeletonElement>
+        <SkeletonElement className=' h-4'></SkeletonElement>
+        <SkeletonElement className='mt-2 h-4 w-12'></SkeletonElement>
+      </div>
+      <SkeletonElement className='col-start-1 flex h-6 w-8 items-center gap-2 place-self-center justify-self-start   md:order-1 md:h-10 md:w-8 md:flex-col md:self-start  ' />
+      <SkeletonElement className='col-start-2 flex h-6 w-8 items-center  gap-2 place-self-center justify-self-end  md:order-3 ' />
+    </div>
   );
 }

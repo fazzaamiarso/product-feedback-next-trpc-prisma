@@ -1,12 +1,20 @@
 import { Button } from "components/Button";
-import { FeedbackCard } from "components/feedback/FeedbackCard";
+import { FeedbackCard, FeedbackSkeleton } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
-import { InferQueryOutput } from "lib/trpc";
+import { Layout } from "components/Layout";
+import { SkeletonElement } from "components/SkeletonElement";
+import { InferMutationInput, InferQueryOutput } from "lib/trpc";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { SetStateAction, useId, useState } from "react";
+import { ReactElement, SetStateAction, useId, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import mergeClassNames from "utils/mergeClassNames";
 import { trpc } from "utils/trpc";
+
+Feedback.getLayout = (page: ReactElement) => <Layout>{page}</Layout>;
+Feedback.hasAuth = true;
 
 export default function Feedback() {
   const router = useRouter();
@@ -19,32 +27,48 @@ export default function Feedback() {
 }
 
 const FeedbackPage = ({ id }: { id: string }) => {
+  const session = useSession();
   const { data, isLoading } = trpc.useQuery(["feedback.id", { id }]);
+  const isFeedbackAuthor = session.data?.user.id === data?.feedback?.userId;
 
   return (
     <>
       <header className='mx-auto my-6 flex w-10/12 max-w-2xl items-center justify-between'>
         <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray mt-0' />
-        <Link href={`/feedback/${id}/edit`}>
-          <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
-        </Link>
+        {isFeedbackAuthor ? (
+          <Link href={`/feedback/${id}/edit`}>
+            <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
+          </Link>
+        ) : null}
       </header>
       <main className='mx-auto mb-8 w-10/12 max-w-2xl space-y-6'>
         {data?.feedback && !isLoading ? (
           <FeedbackCard feedback={data.feedback} key={id} cardType='static' />
         ) : (
-          <p>Loading Data...</p>
+          <FeedbackSkeleton />
         )}
         <section className='rounded-md bg-white p-6'>
-          <h2 className='mb-4 text-xl font-semibold'>
-            {data?.feedback?.interactionsCount ?? 0} Comments
-          </h2>
-          <ul className=' rounded-md '>
-            {data?.interactions &&
-              data.interactions.comments.map((comment) => (
-                <CommentCard key={comment.id} comment={comment} />
-              ))}
-          </ul>
+          {data?.feedback ? (
+            <>
+              <h2 className='mb-4 text-xl font-semibold'>
+                {data.feedback.interactionsCount} Comments
+              </h2>
+              <ul className=' rounded-md '>
+                {data.interactions.comments.map((comment) => (
+                  <CommentCard key={comment.id} comment={comment} />
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
+              <SkeletonElement className='mb-6 h-6 w-1/3 animate-pulse ' />
+              <ul className='space-y-6 rounded-md'>
+                <CommentSkeleton />
+                <CommentSkeleton />
+                <CommentSkeleton />
+              </ul>
+            </>
+          )}
         </section>
         <NewCommentForm feedbackId={id} />
       </main>
@@ -52,86 +76,121 @@ const FeedbackPage = ({ id }: { id: string }) => {
   );
 };
 
+const CommentSkeleton = () => {
+  return (
+    <div className='w-full animate-pulse bg-white '>
+      <div className='mb-4 flex w-full gap-4'>
+        <SkeletonElement className='h-8 w-8 rounded-full' />
+        <div className='w-full'>
+          <SkeletonElement className='mb-2 w-2/3 ' />
+          <SkeletonElement className='h-3 w-1/3 ' />
+        </div>
+      </div>
+      <SkeletonElement className='mb-2 h-3 w-full' />
+      <SkeletonElement className='mb-2 h-3 w-full' />
+      <SkeletonElement className='h-3 w-10/12 ' />
+    </div>
+  );
+};
+
 const MAX_COMMENT_LENGTH = 250;
 const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
-  const [commentInput, setCommentInput] = useState("");
-  const charactersLeft = MAX_COMMENT_LENGTH - commentInput.length;
+  const { control, handleSubmit, clearErrors, reset } = useForm<{ comment: string }>({
+    reValidateMode: "onSubmit"
+  });
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("comment.new", {
-    onSuccess() {
+    onSuccess: () => {
       utils.invalidateQueries("feedback.id");
+      reset();
     }
   });
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        mutation.mutate({ content: commentInput, feedbackId, userId: "1" });
-        setCommentInput("");
-      }}
-      className='flex  flex-col items-start space-y-6 rounded-md bg-white p-6'
+      onSubmit={handleSubmit((data) => mutation.mutate({ feedbackId, content: data.comment }))}
+      className='flex  flex-col items-start rounded-md bg-white p-6'
     >
-      <label htmlFor='add-comment' className='text-xl font-bold text-darkerblue'>
+      <label htmlFor='add-comment' className='mb-4 text-xl font-bold text-darkerblue'>
         Add Comment
       </label>
-      <textarea
+      <Controller
         name='comment'
-        id='add-comment'
-        rows={5}
-        placeholder='Type your comment here'
-        value={commentInput}
-        onChange={(e) =>
-          e.target.value.length > MAX_COMMENT_LENGTH ? null : setCommentInput(e.target.value)
-        }
-        className='w-full resize-y rounded-md bg-lightgray'
+        control={control}
+        defaultValue=''
+        rules={{ required: "Can't be empty!", maxLength: MAX_COMMENT_LENGTH }}
+        render={({ field, formState: { errors } }) => {
+          const charactersLeft = MAX_COMMENT_LENGTH - field.value.length;
+
+          return (
+            <>
+              <textarea
+                id='add-comment'
+                rows={5}
+                placeholder='Type your comment here'
+                value={field.value}
+                onChange={(e) => {
+                  errors.comment && clearErrors("comment");
+                  e.target.value.length <= MAX_COMMENT_LENGTH && field.onChange(e.target.value);
+                }}
+                className={mergeClassNames(
+                  "w-full bg-lightgray",
+                  errors.comment ? "ring-1 ring-red" : ""
+                )}
+              />
+              {errors.comment ? (
+                <span className='pl-2 pt-1 text-xs text-red'>{errors.comment.message}</span>
+              ) : null}
+              <div className='mt-4 flex w-full items-center justify-between'>
+                <span>{charactersLeft} characters left</span>
+                <Button type='submit' className='bg-purple '>
+                  {mutation.isLoading ? "Posting..." : "Post Comment"}
+                </Button>
+              </div>
+            </>
+          );
+        }}
       />
-      <div className='flex w-full items-center justify-between'>
-        <span>{charactersLeft} characters left</span>
-        <Button type='submit' className=' bg-purple '>
-          Post Comment
-        </Button>
-      </div>
     </form>
   );
 };
 
 const ReplyForm = ({
   replyToId,
-  replyFromId,
-  commentId
+  commentId,
+  onDone
 }: {
   replyToId: string;
-  replyFromId: string;
   commentId: number;
+  onDone?: () => void;
 }) => {
+  const { register, handleSubmit } = useForm<InferMutationInput<"comment.reply">>();
   const uid = useId();
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("comment.reply", {
-    onSuccess() {
+    onSuccess: () => {
       utils.invalidateQueries("feedback.id");
+      onDone && onDone();
     }
   });
   return (
     <form
       className='flex w-full flex-col  items-end gap-4 py-4 md:flex-row md:items-start md:pl-12'
-      onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const content = formData.get("content") as string;
-        mutation.mutate({ repliedToId: replyToId, content, replyFromId, commentId });
-      }}
+      onBlur={() => onDone && onDone()}
+      onSubmit={handleSubmit(({ content }) =>
+        mutation.mutate({ content, commentId, repliedToId: replyToId })
+      )}
     >
       <textarea
+        {...register("content")}
         aria-label='reply'
-        name='content'
         id={`reply-${uid}`}
         rows={5}
         required
         className='w-full resize-y bg-lightgray'
       />
       <Button type='submit' className='max-w-max whitespace-nowrap  bg-purple px-5 py-2 '>
-        Post Reply
+        {mutation.isLoading ? "Posting" : "Post Reply"}
       </Button>
     </form>
   );
@@ -146,9 +205,9 @@ const CommentCard = ({ comment }: CommentCardProps) => {
   return (
     <li className=' border-b-[1px] border-b-gray bg-white py-4 last:border-none'>
       <CardHeader
-        avatar={comment.user.avatar ?? ""}
-        username={comment.user.username}
-        name={comment.user.name}
+        avatar={comment.user.image ?? ""}
+        username={comment.user.username ?? ""}
+        name={comment.user.name ?? ""}
         setReplying={setIsCommenting}
       />
       <p className='py-4 md:pl-12'>{comment.content}</p>
@@ -158,7 +217,11 @@ const CommentCard = ({ comment }: CommentCardProps) => {
         ))}
       </ul>
       {isCommenting ? (
-        <ReplyForm commentId={comment.id} replyFromId='1' replyToId={comment.userId} />
+        <ReplyForm
+          commentId={comment.id}
+          replyToId={comment.userId}
+          onDone={() => setIsCommenting(false)}
+        />
       ) : null}
     </li>
   );
@@ -173,9 +236,9 @@ const ReplyCard = ({ reply }: ReplyCardProps) => {
   return (
     <li className=' space-y-4 bg-white '>
       <CardHeader
-        avatar={reply.replyFrom.avatar ?? ""}
-        username={reply.replyFrom.username}
-        name={reply.replyFrom.name}
+        avatar={reply.replyFrom.image ?? ""}
+        username={reply.replyFrom.username ?? ""}
+        name={reply.replyFrom.name ?? ""}
         setReplying={setIsReplying}
       />
 
@@ -186,8 +249,8 @@ const ReplyCard = ({ reply }: ReplyCardProps) => {
       {isReplying ? (
         <ReplyForm
           replyToId={reply.repliedToId}
-          replyFromId={reply.replyFromId}
           commentId={reply.commentId}
+          onDone={() => setIsReplying(false)}
         />
       ) : null}
     </li>

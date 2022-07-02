@@ -1,7 +1,7 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Category } from "@prisma/client";
 import { Button } from "components/Button";
-import { FeedbackCard } from "components/feedback/FeedbackCard";
+import { FeedbackCard, FeedbackSkeleton } from "components/feedback/FeedbackCard";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -12,18 +12,23 @@ import {
   PlusIcon
 } from "components/Icons";
 import { InferQueryInput } from "lib/trpc";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, ReactNode, SetStateAction, useState } from "react";
+import { Fragment, ReactNode, SetStateAction, useCallback, useRef, useState } from "react";
 import { formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
+import debounce from "lodash.debounce";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
 const filterCategories = ["ALL", ...Object.values(Category)] as const;
 type FilterValues = InferQueryInput<"feedback.all">["filter"];
 type SortValues = InferQueryInput<"feedback.all">["sort"];
 
+Home.hasAuth = true;
+
 function Home() {
+  const session = useSession();
   const [filterValue, setFilterValue] = useState<FilterValues>(filterCategories[0]);
   const [sortValue, setSortValue] = useState<SortValues>(sortItems[0]);
   const { data, isLoading } = trpc.useQuery([
@@ -53,6 +58,20 @@ function Home() {
               <WidgetCard>
                 <Roadmap />
               </WidgetCard>
+              <WidgetCard>
+                <div>
+                  <Image
+                    src={session.data?.user?.image ?? ""}
+                    alt={session.data?.user?.name ?? ""}
+                    height={30}
+                    width={30}
+                  />
+                  <p>{session.data?.user?.name}</p>
+                  <Button className='bg-blue' type='button' onClick={() => signOut()}>
+                    Logout
+                  </Button>
+                </div>
+              </WidgetCard>
             </>
           )}
         </Drawer>
@@ -68,6 +87,20 @@ function Home() {
         </WidgetCard>
         <WidgetCard>
           <Roadmap />
+        </WidgetCard>
+        <WidgetCard>
+          <div>
+            <Image
+              src={session.data?.user?.image ?? ""}
+              alt={session.data?.user?.name ?? ""}
+              height={30}
+              width={30}
+            />
+            <p>{session.data?.user?.name}</p>
+            <Button className='bg-blue' type='button' onClick={() => signOut()}>
+              Logout
+            </Button>
+          </div>
         </WidgetCard>
       </header>
       <main className='mx-auto  flex w-full flex-col items-center md:w-11/12'>
@@ -90,7 +123,13 @@ function Home() {
             })}
           </ul>
         ) : isLoading ? (
-          <p>Loading.....</p>
+          <div className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+            <FeedbackSkeleton />
+          </div>
         ) : (
           <EmptyBoard />
         )}
@@ -175,14 +214,11 @@ type DrawerProps = {
 };
 function Drawer({ children }: DrawerProps) {
   const [open, setOpen] = useState(false);
+  const debouncedToggle = useRef(debounce(() => setOpen((prev) => !prev), 300)).current;
 
   return (
     <>
-      <button
-        type='button'
-        onClick={() => queueMicrotask(() => setOpen(!open))}
-        className='md:hidden'
-      >
+      <button type='button' onClick={debouncedToggle} className='md:hidden'>
         {open ? <CloseIcon /> : <HamburgerIcon />}
       </button>
       <Transition.Root show={open} as={Fragment}>

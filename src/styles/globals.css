@@ -10,4 +10,7 @@
   textarea {
     @apply rounded-md border-none text-darkerblue focus:ring-blue;
   }
+  textarea {
+    @apply resize-y;
+  }
 }

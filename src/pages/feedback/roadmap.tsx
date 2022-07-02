@@ -2,9 +2,10 @@ import { Tab } from "@headlessui/react";
 import UpvoteButton from "components/feedback/UpvoteButton";
 import GoBackButton from "components/GoBack";
 import { CommentIcon, PlusIcon } from "components/Icons";
+import { SkeletonElement } from "components/SkeletonElement";
 import Link from "next/link";
 import { Fragment } from "react";
-import { capitalize, formatEnum } from "utils/display";
+import { formatEnum } from "utils/display";
 import { trpc } from "utils/trpc";
 
 const ROADMAPS_ITEMS = [
@@ -54,8 +55,8 @@ const Roadmaps = () => {
     </>
   );
 };
-
 export default Roadmaps;
+Roadmaps.hasAuth = true;
 
 const CategoryTabs = () => {
   const { data, isLoading } = trpc.useQuery(["feedback.roadmapCount"]);
@@ -105,7 +106,11 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
         <p className='text-darkgray'>{description}</p>
       </div>
       {isLoading ? (
-        <p>Loading your data..</p>
+        <div className='space-y-6 py-6'>
+          <RoadmapItemSkeleton />
+          <RoadmapItemSkeleton />
+          <RoadmapItemSkeleton />
+        </div>
       ) : data && data.roadmaps.length > 0 ? (
         <ul className='space-y-6 py-6'>
           {data.roadmaps.map((item) => {
@@ -134,7 +139,7 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
                   upvotes={item.upvotes}
                   feedbackId={item.id}
                   upvotesCount={item.upvotesCount}
-                  className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md bg-gray px-4 py-2 text-2xs font-semibold hover:bg-[#CFD7FF]  '
+                  className='col-start-1 flex items-center gap-2 place-self-center justify-self-start rounded-md  px-4 py-2 text-2xs font-semibold'
                 />
 
                 <div className=' col-start-2 flex items-center gap-2 place-self-center justify-self-end '>
@@ -148,5 +153,20 @@ const RoadmapItem = ({ title, description, value, color }: typeof ROADMAPS_ITEMS
         <p>No Feedback yet</p>
       )}
     </section>
+  );
+};
+
+const RoadmapItemSkeleton = () => {
+  return (
+    <div className='grid-rows-[repeat(2, max-content)]  grid w-full grid-cols-2 place-content-between gap-y-6 gap-x-8 rounded-md border-t-4  border-t-gray bg-white p-6'>
+      <div className='col-span-2 flex flex-col items-start space-y-2  '>
+        <SkeletonElement className='w-1/3' />
+        <SkeletonElement className='h-6 w-10/12' />
+        <SkeletonElement className=' ' />
+        <SkeletonElement className='h-5 w-6' />
+      </div>
+      <SkeletonElement className='col-start-1   h-6 w-8   place-self-center justify-self-start' />
+      <SkeletonElement className=' col-start-2 h-6 w-8  place-self-center justify-self-end ' />
+    </div>
   );
 };
