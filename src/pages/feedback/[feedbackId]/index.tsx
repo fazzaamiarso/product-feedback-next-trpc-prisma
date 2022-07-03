@@ -1,4 +1,5 @@
 import { Button } from "components/Button";
+import { ButtonLink } from "components/ButtonLink";
 import { FeedbackCard, FeedbackSkeleton } from "components/feedback/FeedbackCard";
 import GoBackButton from "components/GoBack";
 import { Layout } from "components/Layout";
@@ -6,7 +7,6 @@ import { SkeletonElement } from "components/SkeletonElement";
 import { InferMutationInput, InferQueryOutput } from "lib/trpc";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, SetStateAction, useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -36,9 +36,13 @@ const FeedbackPage = ({ id }: { id: string }) => {
       <header className='mx-auto my-6 flex w-10/12 max-w-2xl items-center justify-between'>
         <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray mt-0' />
         {isFeedbackAuthor ? (
-          <Link href={`/feedback/${id}/edit`}>
-            <a className='rounded-md bg-blue py-2 px-4  text-xs text-white'>Edit Feedback</a>
-          </Link>
+          <ButtonLink
+            href={`/feedback/${id}/edit`}
+            className=' rounded-md bg-blue py-2 px-4  text-xs text-white'
+            replace
+          >
+            Edit Feedback
+          </ButtonLink>
         ) : null}
       </header>
       <main className='mx-auto mb-8 w-10/12 max-w-2xl space-y-6'>

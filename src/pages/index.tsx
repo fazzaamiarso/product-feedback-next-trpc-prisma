@@ -110,12 +110,14 @@ function Home() {
             <BadgeIcon /> {data?.feedbacks.length ?? 0} Suggestions
           </div>
           <SortListbox selectedValue={sortValue} setSelectedValue={setSortValue} />
-          <Link href='/feedback/new'>
-            <a className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
-              <PlusIcon />
-              Add Feedback
-            </a>
-          </Link>
+          <ButtonLink
+            href='/feedback/new'
+            replace={false}
+            className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'
+          >
+            <PlusIcon />
+            Add Feedback
+          </ButtonLink>
         </div>
         {data && data.feedbacks.length > 0 ? (
           <ul className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
@@ -200,11 +202,14 @@ const EmptyBoard = () => {
         Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
         improve our app.
       </p>
-      <ButtonLink  href="/feedback/new" className="mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs">
-      <PlusIcon />
+      <ButtonLink
+        href='/feedback/new'
+        className='mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs'
+        replace={false}
+      >
+        <PlusIcon />
         Add Feedback
       </ButtonLink>
-      
     </div>
   );
 };
