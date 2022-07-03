@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { ReactElement, SetStateAction, useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { sanitizeInput } from "utils/form";
 import mergeClassNames from "utils/mergeClassNames";
 import { trpc } from "utils/trpc";
 
@@ -112,7 +113,10 @@ const NewCommentForm = ({ feedbackId }: { feedbackId: string }) => {
 
   return (
     <form
-      onSubmit={handleSubmit((data) => mutation.mutate({ feedbackId, content: data.comment }))}
+      onSubmit={handleSubmit((data) => {
+        const { comment } = sanitizeInput(data);
+        mutation.mutate({ feedbackId, content: comment });
+      })}
       className='flex  flex-col items-start rounded-md bg-white p-6'
     >
       <label htmlFor='add-comment' className='mb-4 text-xl font-bold text-darkerblue'>
@@ -180,10 +184,10 @@ const ReplyForm = ({
   return (
     <form
       className='flex w-full flex-col  items-end gap-4 py-4 md:flex-row md:items-start md:pl-12'
-      onBlur={() => onDone && onDone()}
-      onSubmit={handleSubmit(({ content }) =>
-        mutation.mutate({ content, commentId, repliedToId: replyToId })
-      )}
+      onSubmit={handleSubmit((data) => {
+        const { content } = sanitizeInput(data);
+        mutation.mutate({ content, commentId, repliedToId: replyToId });
+      })}
     >
       <textarea
         {...register("content")}

@@ -34,7 +34,7 @@ const UpvoteButton = ({ upvotes, upvotesCount, feedbackId, className }: UpvoteBu
       className={mergeClassNames(
         "rounded-md  px-4 py-1 text-2xs font-semibold  ",
         className,
-        hasUpvoted ? "bg-blue text-white hover:opacity-80" : "bg-gray hover:bg-[#CFD7FF]"
+        hasUpvoted ? "bg-blue text-white " : "bg-gray hover:bg-[#CFD7FF]"
       )}
     >
       <ArrowUpIcon className={mergeClassNames(hasUpvoted ? "stroke-white" : "stroke-blue")} />

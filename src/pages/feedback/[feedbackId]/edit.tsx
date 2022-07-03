@@ -9,6 +9,7 @@ import { Button } from "components/Button";
 import { Controller, useForm } from "react-hook-form";
 import type { InferMutationInput } from "lib/trpc";
 import mergeClassNames from "utils/mergeClassNames";
+import { sanitizeInput } from "utils/form";
 
 const categories = Object.values(Category);
 const statuses = Object.values(Status);
@@ -49,13 +50,17 @@ const EditFeedback = () => {
     }
   });
   const goBack = () => router.back();
+  const isMutating = mutation.isLoading || deleteMutation.isLoading;
+
   return (
     <main className='mx-auto my-12 w-10/12 max-w-lg'>
       <GoBackButton arrowClassName='stroke-blue' textClassName='text-darkgray' />
       <form
         className='relative mt-16 w-full space-y-6 rounded-md bg-white p-6 pt-8'
         onSubmit={handleSubmit((data) => {
-          mutation.mutate(data);
+          if (isMutating) return;
+          const sanitizedData = sanitizeInput(data);
+          mutation.mutate(sanitizedData);
         })}
       >
         <div className='absolute top-0 z-10  -translate-y-1/2'>
@@ -151,16 +156,19 @@ const EditFeedback = () => {
         </InputWrapper>
         <div className='flex w-full flex-col gap-4 pt-4 md:flex-row-reverse '>
           <Button className=' bg-purple' type='submit'>
-            Save Changes
+            {mutation.isLoading ? "Saving..." : "Save Changes"}
           </Button>
           <Button onClick={goBack} className=' bg-darkgray  '>
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(({ feedbackId }) => deleteMutation.mutate({ feedbackId }))}
+            onClick={handleSubmit(({ feedbackId }) => {
+              if (isMutating) return;
+              deleteMutation.mutate({ feedbackId });
+            })}
             className='bg-red  md:mr-auto '
           >
-            {deleteMutation.isLoading ? "Deleting" : "Delete"}
+            {deleteMutation.isLoading ? "Deleting..." : "Delete"}
           </Button>
         </div>
       </form>
