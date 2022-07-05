@@ -20,6 +20,7 @@ import { formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
 import debounce from "lodash.debounce";
 import { ButtonLink } from "components/ButtonLink";
+import mergeClassNames from "utils/mergeClassNames";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
 const filterCategories = ["ALL", ...Object.values(Category)] as const;
@@ -60,14 +61,15 @@ function Home() {
                 <Roadmap />
               </WidgetCard>
               <WidgetCard>
-                <div>
+                <div className='flex flex-col items-center'>
                   <Image
                     src={session.data?.user?.image ?? ""}
                     alt={session.data?.user?.name ?? ""}
                     height={30}
                     width={30}
+                    className='rounded-full'
                   />
-                  <p>{session.data?.user?.name}</p>
+                  <p className='mb-4'>{session.data?.user?.username}</p>
                   <Button className='bg-blue' type='button' onClick={() => signOut()}>
                     Logout
                   </Button>
@@ -82,6 +84,9 @@ function Home() {
           <h1 className=' flex flex-col items-start text-lg font-bold text-white lg:text-xl'>
             Frontend Mentor <span className='text-normal font-normal'>Feedback Board</span>
           </h1>
+          <Button className='mt-2 bg-blue lg:hidden' type='button' onClick={() => signOut()}>
+            Logout
+          </Button>
         </div>
         <WidgetCard>
           <FilterRadios selectedValue={filterValue} setSelectedValue={selectFilter} />
@@ -89,15 +94,18 @@ function Home() {
         <WidgetCard>
           <Roadmap />
         </WidgetCard>
-        <WidgetCard>
+        <WidgetCard className='md:hidden lg:block'>
           <div>
-            <Image
-              src={session.data?.user?.image ?? ""}
-              alt={session.data?.user?.username ?? ""}
-              height={30}
-              width={30}
-            />
-            <p>{session.data?.user?.username}</p>
+            <div className='mb-4 flex items-center gap-2'>
+              <Image
+                src={session.data?.user?.image ?? ""}
+                alt={session.data?.user?.username ?? ""}
+                height={30}
+                width={30}
+                className='rounded-full'
+              />
+              <p>{session.data?.user?.username}</p>
+            </div>
             <Button className='bg-blue' type='button' onClick={() => signOut()}>
               Logout
             </Button>
@@ -312,7 +320,7 @@ const FilterRadios = ({
 };
 
 const Roadmap = () => {
-  const { data, isLoading } = trpc.useQuery(["feedback.roadmapCount"]);
+  const { data } = trpc.useQuery(["feedback.roadmapCount"]);
 
   return (
     <div className='flex flex-col gap-4'>
@@ -349,8 +357,15 @@ const Roadmap = () => {
   );
 };
 
-const WidgetCard = ({ children }: { children: ReactNode }) => {
+const WidgetCard = ({ children, className = "" }: { children: ReactNode; className?: string }) => {
   return (
-    <div className='mx-auto w-10/12 rounded-md bg-white p-4 md:w-full md:p-6 '>{children}</div>
+    <div
+      className={mergeClassNames(
+        "mx-auto w-10/12 rounded-md bg-white p-4 md:w-full md:p-6 ",
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 };
