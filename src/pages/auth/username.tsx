@@ -4,17 +4,11 @@ import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { trpc } from "utils/trpc";
 
-export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext) => {
   const session = await getSession({ req });
-  if (session?.user.username)
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false
-      }
-    };
-  return { 
-      props : {}
+  if (session?.user.username) res.writeHead(302, { location: "/" }) && res.end();
+  return {
+    props: {}
   };
 };
 
