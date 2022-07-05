@@ -5,8 +5,8 @@ export default function SignIn({
   providers
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
-    <main>
-      <h1 className='mt-6 text-center text-2xl font-bold text-darkerblue'>
+    <main className='mx-auto max-w-lg py-12'>
+      <h1 className='mt-6 mb-8 text-center text-2xl font-bold text-darkerblue'>
         Sign in to your account
       </h1>
       {providers &&
@@ -15,7 +15,7 @@ export default function SignIn({
             <div key={provider.id}>
               <button
                 onClick={() => signIn(provider.id)}
-                className='rounded-md bg-salmon p-4 font-semibold hover:opacity-90'
+                className='w-full rounded-md bg-salmon p-4 font-semibold hover:opacity-90'
               >
                 Sign in with {provider.name}
               </button>

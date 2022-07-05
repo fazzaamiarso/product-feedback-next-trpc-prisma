@@ -196,3 +196,4 @@ export const feedbackRouter = createProtectedRouter
       return await ctx.prisma.upvote.create({ data });
     }
   });
+ 
