@@ -6,6 +6,7 @@ import superjson from "superjson";
 import { SessionProvider, signIn, useSession } from "next-auth/react";
 import type { NextPage } from "next";
 import { ReactNode, useEffect } from "react";
+import Head from "next/head";
 
 type NextPageWithAuthAndLayout = NextPage & {
   hasAuth?: boolean;
@@ -21,6 +22,9 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
   const page = getLayout(<Component {...pageProps} />);
   return (
     <SessionProvider session={session}>
+      <Head>
+        <title>Product Feedback</title>
+      </Head>
       {Component.hasAuth ? <Auth>{page}</Auth> : page}
     </SessionProvider>
   );
