@@ -1,4 +1,5 @@
 import { Tab } from "@headlessui/react";
+import { ButtonLink } from "components/ButtonLink";
 import UpvoteButton from "components/feedback/UpvoteButton";
 import GoBackButton from "components/GoBack";
 import { CommentIcon, PlusIcon } from "components/Icons";
@@ -37,12 +38,14 @@ const Roadmaps = () => {
           <GoBackButton arrowClassName='stroke-white' textClassName='text-white mt-0' />
           <h1 className='text-2xl font-bold'>Roadmap</h1>
         </div>
-        <Link href='/feedback/new'>
-          <a className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
-            <PlusIcon />
-            Add Feedback
-          </a>
-        </Link>
+        <ButtonLink
+          href='/feedback/new'
+          replace={false}
+          className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'
+        >
+          <PlusIcon />
+          Add Feedback
+        </ButtonLink>
       </header>
       <main className='mx-auto max-w-5xl'>
         <CategoryTabs />

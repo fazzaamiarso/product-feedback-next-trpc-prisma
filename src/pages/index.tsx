@@ -15,10 +15,12 @@ import { InferQueryInput } from "lib/trpc";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, ReactNode, SetStateAction, useCallback, useRef, useState } from "react";
+import { Fragment, ReactNode, SetStateAction, useRef, useState } from "react";
 import { formatEnum } from "utils/display";
 import { trpc } from "../utils/trpc";
 import debounce from "lodash.debounce";
+import { ButtonLink } from "components/ButtonLink";
+import mergeClassNames from "utils/mergeClassNames";
 
 const sortItems = ["Most Upvotes", "Least Upvotes", "Most Comments", "Least Comments"] as const;
 const filterCategories = ["ALL", ...Object.values(Category)] as const;
@@ -59,14 +61,15 @@ function Home() {
                 <Roadmap />
               </WidgetCard>
               <WidgetCard>
-                <div>
+                <div className='flex flex-col items-center'>
                   <Image
                     src={session.data?.user?.image ?? ""}
                     alt={session.data?.user?.name ?? ""}
                     height={30}
                     width={30}
+                    className='rounded-full'
                   />
-                  <p>{session.data?.user?.name}</p>
+                  <p className='mb-4'>{session.data?.user?.username}</p>
                   <Button className='bg-blue' type='button' onClick={() => signOut()}>
                     Logout
                   </Button>
@@ -81,6 +84,9 @@ function Home() {
           <h1 className=' flex flex-col items-start text-lg font-bold text-white lg:text-xl'>
             Frontend Mentor <span className='text-normal font-normal'>Feedback Board</span>
           </h1>
+          <Button className='mt-2 bg-blue lg:hidden' type='button' onClick={() => signOut()}>
+            Logout
+          </Button>
         </div>
         <WidgetCard>
           <FilterRadios selectedValue={filterValue} setSelectedValue={selectFilter} />
@@ -88,15 +94,18 @@ function Home() {
         <WidgetCard>
           <Roadmap />
         </WidgetCard>
-        <WidgetCard>
+        <WidgetCard className='md:hidden lg:block'>
           <div>
-            <Image
-              src={session.data?.user?.image ?? ""}
-              alt={session.data?.user?.name ?? ""}
-              height={30}
-              width={30}
-            />
-            <p>{session.data?.user?.name}</p>
+            <div className='mb-4 flex items-center gap-2'>
+              <Image
+                src={session.data?.user?.image ?? ""}
+                alt={session.data?.user?.username ?? ""}
+                height={30}
+                width={30}
+                className='rounded-full'
+              />
+              <p>{session.data?.user?.username}</p>
+            </div>
             <Button className='bg-blue' type='button' onClick={() => signOut()}>
               Logout
             </Button>
@@ -109,12 +118,14 @@ function Home() {
             <BadgeIcon /> {data?.feedbacks.length ?? 0} Suggestions
           </div>
           <SortListbox selectedValue={sortValue} setSelectedValue={setSortValue} />
-          <Link href='/feedback/new'>
-            <a className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'>
-              <PlusIcon />
-              Add Feedback
-            </a>
-          </Link>
+          <ButtonLink
+            href='/feedback/new'
+            replace={false}
+            className='ml-auto flex items-center gap-1 rounded-md bg-purple px-6 py-3 text-2xs font-semibold text-white hover:opacity-80'
+          >
+            <PlusIcon />
+            Add Feedback
+          </ButtonLink>
         </div>
         {data && data.feedbacks.length > 0 ? (
           <ul className='mx-auto flex w-11/12 flex-col items-center gap-6 py-6 md:w-full'>
@@ -199,10 +210,14 @@ const EmptyBoard = () => {
         Got a suggestion? Found a bug that needs to be squashed? We love hearing about new ideas to
         improve our app.
       </p>
-      <Button className='mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs'>
+      <ButtonLink
+        href='/feedback/new'
+        className='mt-6 flex items-center gap-1  bg-purple px-6 py-3 text-2xs'
+        replace={false}
+      >
         <PlusIcon />
         Add Feedback
-      </Button>
+      </ButtonLink>
     </div>
   );
 };
@@ -305,7 +320,7 @@ const FilterRadios = ({
 };
 
 const Roadmap = () => {
-  const { data, isLoading } = trpc.useQuery(["feedback.roadmapCount"]);
+  const { data } = trpc.useQuery(["feedback.roadmapCount"]);
 
   return (
     <div className='flex flex-col gap-4'>
@@ -342,8 +357,15 @@ const Roadmap = () => {
   );
 };
 
-const WidgetCard = ({ children }: { children: ReactNode }) => {
+const WidgetCard = ({ children, className = "" }: { children: ReactNode; className?: string }) => {
   return (
-    <div className='mx-auto w-10/12 rounded-md bg-white p-4 md:w-full md:p-6 '>{children}</div>
+    <div
+      className={mergeClassNames(
+        "mx-auto w-10/12 rounded-md bg-white p-4 md:w-full md:p-6 ",
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 };

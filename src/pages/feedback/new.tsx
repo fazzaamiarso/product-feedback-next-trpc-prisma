@@ -9,6 +9,7 @@ import { Button } from "components/Button";
 import { Controller, useForm } from "react-hook-form";
 import { InferMutationInput } from "lib/trpc";
 import mergeClassNames from "utils/mergeClassNames";
+import { sanitizeInput } from "utils/form";
 
 const categories = Object.values(Category);
 type NewFeedbackInput = InferMutationInput<"feedback.new">;
@@ -42,7 +43,9 @@ const NewFeedback = () => {
       <form
         className='relative  mt-16 w-full  space-y-6 rounded-md bg-white p-6 pt-8'
         onSubmit={handleSubmit((data) => {
-          mutation.mutate(data);
+          if (mutation.isLoading) return;
+          const sanitizedData = sanitizeInput(data);
+          mutation.mutate(sanitizedData);
         })}
       >
         <div className='absolute top-0 z-10  -translate-y-1/2'>
@@ -119,7 +122,7 @@ const NewFeedback = () => {
         </InputWrapper>
         <div className='flex w-full flex-col gap-4 pt-4 md:flex-row-reverse md:justify-end'>
           <Button type='submit' className='bg-purple'>
-            Add Feedback
+            {mutation.isLoading ? "Posting Feedback..." : "Add Feedback"}
           </Button>
           <Button onClick={goBack} className='bg-darkgray '>
             Cancel
